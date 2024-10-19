@@ -1,14 +1,36 @@
 let gameMode = '';
+let difficulty = 'medium';
 let currentPlayer = 'X';
 let mainBoard = [];
 let activeBoard = null;
 let gameActive = true;
+let history = [];
 
-function startGame(mode) {
+function showDifficulty(mode) {
     gameMode = mode;
     document.getElementById('main-menu').style.display = 'none';
+    document.getElementById('difficulty-menu').style.display = 'block';
+    playClickSound();
+}
+
+function startGame(mode, selectedDifficulty) {
+    if (selectedDifficulty) {
+        difficulty = selectedDifficulty;
+    }
+    gameMode = mode;
+    document.getElementById('main-menu').style.display = 'none';
+    document.getElementById('difficulty-menu').style.display = 'none';
     document.getElementById('game-container').style.display = 'block';
     initGame();
+    playClickSound();
+}
+
+function backToMainMenu() {
+    document.getElementById('game-container').style.display = 'none';
+    document.getElementById('difficulty-menu').style.display = 'none';
+    document.getElementById('main-menu').style.display = 'block';
+    document.getElementById('history-container').style.display = 'none';
+    playClickSound();
 }
 
 function exitGame() {
@@ -73,6 +95,7 @@ function handleCellClick(boardIndex, cellIndex) {
     const miniBoard = mainBoard[boardIndex];
     if (miniBoard.cells[cellIndex] !== '') return;
     miniBoard.cells[cellIndex] = currentPlayer;
+    playPlaceSound();
     checkMiniBoardWinner(miniBoard, boardIndex);
     activeBoard = mainBoard[cellIndex].winner || isBoardFull(mainBoard[cellIndex].cells) ? null : cellIndex;
     drawBoard();
@@ -108,9 +131,13 @@ function checkGameWinner() {
     if (winner) {
         gameActive = false;
         updateMessage(`¡${winner} ha ganado el juego!`);
+        playWinSound();
+        addToHistory(winner);
     } else if (isBoardFull(mainBoardState)) {
         gameActive = false;
         updateMessage('¡Es un empate!');
+        playDrawSound();
+        addToHistory('Empate');
     }
 }
 
@@ -135,14 +162,15 @@ function calculateWinner(cells) {
 
 function resetGame() {
     initGame();
+    playClickSound();
 }
 
 function cpuMove() {
     let boardIndex = activeBoard !== null ? activeBoard : getRandomBoardIndex();
-    let cellIndex = getBestMove(mainBoard[boardIndex]);
+    let cellIndex = getBestMove(mainBoard[boardIndex], difficulty);
     if (cellIndex === null) {
         boardIndex = getRandomBoardIndex();
-        cellIndex = getBestMove(mainBoard[boardIndex]);
+        cellIndex = getBestMove(mainBoard[boardIndex], difficulty);
     }
     handleCellClick(boardIndex, cellIndex);
 }
@@ -154,31 +182,118 @@ function getRandomBoardIndex() {
     return availableBoards[Math.floor(Math.random() * availableBoards.length)];
 }
 
-function getBestMove(board) {
-    // Implementación básica de IA (Minimax simplificado)
-    const cells = board.cells;
-    for (let i = 0; i < cells.length; i++) {
-        if (cells[i] === '') {
-            cells[i] = 'O';
-            if (calculateWinner(cells) === 'O') {
-                cells[i] = '';
-                return i;
-            }
-            cells[i] = '';
-        }
+function getBestMove(board, difficultyLevel) {
+    const cells = board.cells.slice();
+    if (difficultyLevel === 'easy') {
+        return getRandomCellIndex(cells);
+    } else if (difficultyLevel === 'medium') {
+        return mediumAIMove(cells);
+    } else {
+        return minimax(cells, 'O').index;
     }
-    for (let i = 0; i < cells.length; i++) {
-        if (cells[i] === '') {
-            cells[i] = 'X';
-            if (calculateWinner(cells) === 'X') {
-                cells[i] = '';
-                return i;
-            }
-            cells[i] = '';
-        }
-    }
+}
+
+function getRandomCellIndex(cells) {
     const availableCells = cells
         .map((cell, index) => cell === '' ? index : null)
         .filter(index => index !== null);
-    return availableCells.length > 0 ? availableCells[0] : null;
+    return availableCells.length > 0 ? availableCells[Math.floor(Math.random() * availableCells.length)] : null;
+}
+
+function mediumAIMove(cells) {
+    // 50% de probabilidad de hacer el mejor movimiento
+    if (Math.random() > 0.5) {
+        return minimax(cells, 'O').index;
+    } else {
+        return getRandomCellIndex(cells);
+    }
+}
+
+function minimax(newBoard, player) {
+    const availSpots = newBoard
+        .map((cell, index) => cell === '' ? index : null)
+        .filter(index => index !== null);
+
+    if (calculateWinner(newBoard) === 'X') {
+        return { score: -10 };
+    } else if (calculateWinner(newBoard) === 'O') {
+        return { score: 10 };
+    } else if (availSpots.length === 0) {
+        return { score: 0 };
+    }
+
+    const moves = [];
+
+    for (let i = 0; i < availSpots.length; i++) {
+        const move = {};
+        move.index = availSpots[i];
+        newBoard[availSpots[i]] = player;
+
+        if (player === 'O') {
+            const result = minimax(newBoard, 'X');
+            move.score = result.score;
+        } else {
+            const result = minimax(newBoard, 'O');
+            move.score = result.score;
+        }
+
+        newBoard[availSpots[i]] = '';
+        moves.push(move);
+    }
+
+    let bestMove;
+    if (player === 'O') {
+        let bestScore = -Infinity;
+        for (let i = 0; i < moves.length; i++) {
+            if (moves[i].score > bestScore) {
+                bestScore = moves[i].score;
+                bestMove = i;
+            }
+        }
+    } else {
+        let bestScore = Infinity;
+        for (let i = 0; i < moves.length; i++) {
+            if (moves[i].score < bestScore) {
+                bestScore = moves[i].score;
+                bestMove = i;
+            }
+        }
+    }
+
+    return moves[bestMove];
+}
+
+// Funciones para sonidos
+function playPlaceSound() {
+    document.getElementById('place-sound').play();
+}
+
+function playWinSound() {
+    document.getElementById('win-sound').play();
+}
+
+function playDrawSound() {
+    document.getElementById('draw-sound').play();
+}
+
+function playClickSound() {
+    document.getElementById('click-sound').play();
+}
+
+// Historial de partidas
+function addToHistory(result) {
+    history.push(result);
+    updateHistory();
+}
+
+function updateHistory() {
+    const historyContainer = document.getElementById('history-container');
+    const historyList = document.getElementById('history-list');
+    historyList.innerHTML = '';
+    history.forEach((result, index) => {
+        const listItem = document.createElement('li');
+        listItem.textContent = `Partida ${index + 1}: ${result}`;
+        historyList.appendChild(listItem);
+    });
+    historyContainer.style.display = 'block';
 }

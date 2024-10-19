@@ -9,16 +9,35 @@
 <body>
     <div id="main-menu" class="menu">
         <h1>EL GATO 4D</h1>
-        <button onclick="startGame('cpu')">P1 vs CPU</button>
+        <button onclick="showDifficulty('cpu')">P1 vs CPU</button>
         <button onclick="startGame('pvp')">P1 vs P2</button>
         <button onclick="exitGame()">Salir</button>
+    </div>
+
+    <div id="difficulty-menu" class="menu" style="display: none;">
+        <h2>Seleccione la dificultad</h2>
+        <button onclick="startGame('cpu', 'easy')">Fácil</button>
+        <button onclick="startGame('cpu', 'medium')">Medio</button>
+        <button onclick="startGame('cpu', 'hard')">Difícil</button>
+        <button onclick="backToMainMenu()">Atrás</button>
     </div>
 
     <div id="game-container" style="display: none;">
         <div id="board"></div>
         <div id="message"></div>
         <button onclick="resetGame()">Reiniciar Juego</button>
+        <button onclick="backToMainMenu()">Menú Principal</button>
     </div>
+
+    <div id="history-container" style="display: none;">
+        <h2>Historial de Partidas</h2>
+        <ul id="history-list"></ul>
+    </div>
+
+    <audio id="place-sound" src="sounds/place.wav"></audio>
+    <audio id="win-sound" src="sounds/win.wav"></audio>
+    <audio id="draw-sound" src="sounds/draw.wav"></audio>
+    <audio id="click-sound" src="sounds/click.wav"></audio>
 
     <script src="script.js"></script>
 </body>
