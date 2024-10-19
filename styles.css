@@ -1,178 +1,346 @@
 /* Estilos generales */
 body {
-    font-family: 'Roboto', sans-serif;
-    background-color: #300f21;
+    font-family: 'Press Start 2P', cursive;
+    background-color: #111; /* Fondo negro */
     color: #fff;
     text-align: center;
     margin: 0;
     padding: 0;
+    overflow-x: hidden;
+}
+
+/* Posicionamiento del temporizador */
+#timer {
+    position: fixed;
+    top: 10px;
+    right: 20px;
+    font-size: 14px;
+    color: #ccc;
+    z-index: 1000;
 }
 
 /* Menú principal y de dificultad */
 .menu {
     margin-top: 50px;
+    animation: fadeIn 1s;
 }
 
 .logo-container {
     margin-bottom: 30px;
 }
 
-.logo-container img {
-    max-width: 500px;
-    width: 80%;
+.logo-container h1 {
+    font-size: 36px;
+    color: #fff;
+    text-shadow: 2px 2px 0px #000;
 }
 
-.menu h1, .menu h2 {
-    font-family: 'Press Start 2P', cursive;
-    font-size: 48px;
-    margin-bottom: 30px;
+.menu h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #fff;
 }
 
 .menu button {
-    font-size: 20px;
-    padding: 15px 30px;
+    font-size: 16px;
+    padding: 10px 20px;
     margin: 10px;
     cursor: pointer;
-    background-color: #444;
+    background-color: #222;
     color: #fff;
-    border: none;
+    border: 2px solid #fff;
     border-radius: 5px;
     transition: background-color 0.3s, transform 0.2s;
 }
 
 .menu button:hover {
-    background-color: #666;
+    background-color: #444;
     transform: scale(1.05);
 }
 
 /* Contenedor del juego */
 #game-container {
-    margin-top: 20px;
+    margin: 20px auto;
+    animation: fadeIn 1s;
+}
+
+#game-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 #board {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 5px;
+    max-width: 90vmin; /* Asegura que el tablero sea más pequeño que la pantalla */
+    max-height: 90vmin;
     margin: 0 auto;
-    max-width: 600px;
 }
 
 .mini-board {
+    width: calc(90vmin / 3 - 10px);
+    height: calc(90vmin / 3 - 10px);
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    background-color: #333;
-    padding: 5px;
+    background-color: #222;
     position: relative;
     transition: transform 0.3s;
+    border: 2px solid #fff;
 }
 
 .mini-board.active {
-    outline: 3px solid #fff;
-    transform: scale(1.05);
+    outline: 2px dashed #fff;
+    transform: scale(1.02);
 }
 
+.mini-board.winner-X,
+.mini-board.winner-O {
+    background-color: #000;
+}
+
+/* Bordes para crear el '#' gigante */
+.mini-board:nth-child(2),
+.mini-board:nth-child(5),
+.mini-board:nth-child(8) {
+    border-left: 2px solid #fff;
+    border-right: 2px solid #fff;
+}
+
+.mini-board:nth-child(4),
+.mini-board:nth-child(5),
+.mini-board:nth-child(6) {
+    border-top: 2px solid #fff;
+    border-bottom: 2px solid #fff;
+}
+
+/* Estilos de las celdas */
 .cell {
-    width: 100%;
-    padding-top: 100%;
     position: relative;
-    background-color: #555;
-    border: 1px solid #444;
-    font-size: 36px;
+    background-color: #111;
     cursor: pointer;
     transition: background-color 0.3s;
+    border: 1px solid #333;
 }
 
 .cell.disabled {
-    background-color: #222;
+    background-color: #111;
     cursor: not-allowed;
 }
 
-.cell:after {
-    content: '';
-    display: block;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+.cell:hover {
+    background-color: #222;
 }
 
-.cell span {
+/* Bordes para crear el '#' en celdas */
+.cell:nth-child(2),
+.cell:nth-child(5),
+.cell:nth-child(8) {
+    border-left: 1px solid #fff;
+    border-right: 1px solid #fff;
+}
+
+.cell:nth-child(4),
+.cell:nth-child(5),
+.cell:nth-child(6) {
+    border-top: 1px solid #fff;
+    border-bottom: 1px solid #fff;
+}
+
+/* Estilos para los símbolos 'X' y 'O' */
+.cell span,
+.mini-board span {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 2em;
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    color: #fff;
+    text-shadow: 1px 1px 0px #000;
+    user-select: none;
 }
 
+.mini-board span {
+    font-size: 2em;
+}
+
+/* Animaciones para los símbolos */
+.cell span {
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    50% {opacity: 5;}
+}
+
+/* Mensaje del juego */
 #message {
     margin: 20px;
-    font-size: 24px;
-}
-
-/* Puntuación */
-#score {
-    font-size: 24px;
-    margin-bottom: 10px;
-}
-
-/* Botones del juego */
-#game-container button {
     font-size: 18px;
-    padding: 10px 20px;
-    margin: 5px;
-    cursor: pointer;
-    background-color: #444;
+    color: #ccc;
+    text-align: center;
+}
+
+/* Información y botones del juego */
+#game-info {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#game-info button {
+    width: 200px;
+    margin: 10px 0;
+    font-size: 16px;
+    padding: 10px;
+    background-color: #222;
     color: #fff;
-    border: none;
+    border: 2px solid #fff;
     border-radius: 5px;
     transition: background-color 0.3s, transform 0.2s;
 }
 
-#game-container button:hover {
-    background-color: #666;
+#game-info button:hover {
+    background-color: #444;
     transform: scale(1.05);
 }
 
-/* Historial de partidas y High Scores */
-#history-container, #highscore-container {
-    margin-top: 30px;
-}
-
-#history-container h2, #highscore-container h2 {
-    font-size: 36px;
-}
-
-#history-list, #highscore-list {
-    list-style-type: none;
-    padding: 0;
+#score {
     font-size: 18px;
+    margin-bottom: 10px;
+    color: #ccc;
 }
 
-#history-list li, #highscore-list li {
-    margin: 5px 0;
+/* Ventana Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.9);
+}
+
+.modal-content {
+    background-color: #111;
+    margin: 15% auto;
+    padding: 20px;
+    border: 2px solid #fff;
+    width: 80%;
+    max-width: 500px;
+    border-radius: 5px;
+    text-align: center;
+    animation: fadeIn 0.5s;
+}
+
+.modal-content h2 {
+    font-size: 24px;
+    color: #fff;
+}
+
+.modal-content p {
+    font-size: 16px;
+    color: #ccc;
+}
+
+.modal-content button {
+    font-size: 16px;
+    padding: 10px 20px;
+    margin: 10px;
+    cursor: pointer;
+    background-color: #222;
+    color: #fff;
+    border: 2px solid #fff;
+    border-radius: 5px;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.modal-content button:hover {
+    background-color: #444;
+    transform: scale(1.05);
+}
+
+/* Estilos para el modal de fin de juego */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.9);
+}
+
+.modal-content {
+    background-color: #111;
+    margin: 15% auto;
+    padding: 20px;
+    border: 2px solid #fff;
+    width: 80%;
+    max-width: 500px;
+    border-radius: 5px;
+    text-align: center;
+    animation: fadeIn 0.5s;
+}
+
+.modal-content h2 {
+    font-size: 24px;
+    color: #fff;
+}
+
+.modal-content p {
+    font-size: 16px;
+    color: #ccc;
+}
+
+.modal-content button {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    padding: 10px 20px;
+    margin: 10px;
+    cursor: pointer;
+    background-color: #222;
+    color: #fff;
+    border: 2px solid #fff;
+    border-radius: 5px;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.modal-content button:hover {
+    background-color: #444;
+    transform: scale(1.05);
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 /* Estilos responsivos */
 @media (max-width: 768px) {
-    .menu h1, .menu h2 {
-        font-size: 36px;
+    .mini-board {
+        width: calc(90vmin / 3 - 10px);
+        height: calc(90vmin / 3 - 10px);
     }
 
-    .menu button {
-        font-size: 18px;
-        padding: 10px 20px;
+    .mini-board span {
+        font-size: 3em;
     }
 
-    #message {
-        font-size: 20px;
+    .cell span {
+        font-size: 1.5em;
     }
 
-    #game-container button {
-        font-size: 16px;
-    }
-
-    .logo-container img {
-        max-width: 200px;
+    #game-info button {
+        width: 80%;
     }
 }

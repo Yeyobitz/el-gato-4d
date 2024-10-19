@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <title>EL GATO 4D</title>
     <link rel="stylesheet" href="styles.css">
-    <!-- Fuentes para diseño atractivo -->
+    <!-- Fuentes para diseño retro -->
     <link href="https://fonts.googleapis.com/css?family=Press+Start+2P|Roboto:400,700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div id="main-menu" class="menu">
         <div class="logo-container">
-            <img src="images/logo.png" alt="EL GATO 4D">
+            <h1>EL GATO 4D</h1>
         </div>
         <button onclick="showDifficulty('cpu')">P1 vs CPU</button>
         <button onclick="startGame('pvp')">P1 vs P2</button>
@@ -27,11 +27,18 @@
     </div>
 
     <div id="game-container" style="display: none;">
-        <div id="board"></div>
+        <div id="timer"><span id="time-elapsed">00:00</span></div>
+        <div id="game-content">
+            <div id="board"></div>
+            <div id="game-info">
+                <button onclick="resetGame()">Reiniciar Juego</button>
+                <button onclick="backToMainMenu()">Menú Principal</button>
+            </div>
+        </div>
+        <!-- Mensaje de turno debajo del contenedor del juego -->
         <div id="message"></div>
+        <!-- Puntaje mostrado al final del juego -->
         <div id="score" style="display: none;">Puntuación: <span id="current-score">0</span></div>
-        <button onclick="resetGame()">Reiniciar Juego</button>
-        <button onclick="backToMainMenu()">Menú Principal</button>
     </div>
 
     <div id="history-container" style="display: none;">
@@ -45,11 +52,30 @@
         <button onclick="backToMainMenu()">Atrás</button>
     </div>
 
+    <!-- Ventana Modal para Empate Inminente -->
+    <div id="draw-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>¡El empate es inminente!</h2>
+            <p>¿Deseas reintentar?</p>
+            <button onclick="retryGame()">Reintentar</button>
+            <button onclick="backToMainMenu()">Menú Principal</button>
+        </div>
+    </div>
+
     <!-- Elementos de audio para sonidos -->
     <audio id="place-sound" src="sounds/place.wav"></audio>
     <audio id="win-sound" src="sounds/win.wav"></audio>
     <audio id="draw-sound" src="sounds/draw.wav"></audio>
     <audio id="click-sound" src="sounds/click.wav"></audio>
+    <!-- Ventana Modal para Fin de Juego -->
+<div id="game-over-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h2 id="game-over-message">¡Juego Terminado!</h2>
+        <p id="game-over-details"></p>
+        <button onclick="resetGame()">Reiniciar Juego</button>
+        <button onclick="backToMainMenu()">Menú Principal</button>
+    </div>
+</div>
 
     <script src="script.js"></script>
 </body>

@@ -8,6 +8,9 @@ let history = [];
 let highScores = [];
 let moveCount = 0;
 let gameStartTime = null;
+let timerInterval = null;
+let score = 0;
+let formattedTime = '00:00';
 
 function showDifficulty(mode) {
     gameMode = mode;
@@ -39,16 +42,22 @@ function backToMainMenu() {
     document.getElementById('main-menu').style.display = 'block';
     document.getElementById('history-container').style.display = 'none';
     document.getElementById('highscore-container').style.display = 'none';
+    document.getElementById('draw-modal').style.display = 'none';
+    clearInterval(timerInterval);
     playClickSound();
 }
 
 function exitGame() {
-    // window.close(); // No funciona en navegadores por seguridad
+    // No se puede cerrar la ventana en navegadores por seguridad
     backToMainMenu();
 }
 
 function initGame() {
     mainBoard = [];
+    score = 0;
+    formattedTime = '00:00';
+    document.getElementById('game-over-modal').style.display = 'none';
+    document.getElementById('score').style.display = 'none'; // Ocultamos el puntaje al iniciar
     for (let i = 0; i < 9; i++) {
         mainBoard.push({
             cells: Array(9).fill(''),
@@ -62,8 +71,20 @@ function initGame() {
     moveCount = 0;
     gameStartTime = Date.now();
     document.getElementById('current-score').textContent = '0';
+    document.getElementById('time-elapsed').textContent = '0';
+    startTimer();
     drawBoard();
     updateMessage(`Turno de ${currentPlayer}`);
+}
+
+function startTimer() {
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        const timeElapsed = Math.floor((Date.now() - gameStartTime) / 1000);
+        const minutes = Math.floor(timeElapsed / 60).toString().padStart(2, '0');
+        const seconds = (timeElapsed % 60).toString().padStart(2, '0');
+        document.getElementById('time-elapsed').textContent = `${minutes}:${seconds}`;
+    }, 1000);
 }
 
 function drawBoard() {
@@ -76,8 +97,8 @@ function drawBoard() {
             miniBoardElement.classList.add('active');
         }
         if (miniBoard.winner) {
-            miniBoardElement.style.backgroundColor = miniBoard.winner === 'X' ? '#0f0' : '#f00';
-            miniBoardElement.innerHTML = `<span style="font-size:72px;">${miniBoard.winner}</span>`;
+            miniBoardElement.classList.add(`winner-${miniBoard.winner}`);
+            miniBoardElement.innerHTML = `<span>${miniBoard.winner}</span>`;
         } else {
             miniBoard.cells.forEach((cell, cellIndex) => {
                 const cellElement = document.createElement('div');
@@ -115,6 +136,12 @@ function handleCellClick(boardIndex, cellIndex) {
     drawBoard();
     checkGameWinner();
     if (!gameActive) return;
+    if (isDrawImminent()) {
+        gameActive = false;
+        clearInterval(timerInterval);
+        showDrawModal();
+        return;
+    }
     switchPlayer();
     updateMessage(`Turno de ${currentPlayer}`);
     if (gameMode === 'cpu' && currentPlayer === 'O') {
@@ -134,8 +161,8 @@ function checkMiniBoardWinner(miniBoard, index) {
     const winner = calculateWinner(miniBoard.cells);
     if (winner) {
         miniBoard.winner = winner;
-        miniBoard.element.style.backgroundColor = winner === 'X' ? '#0f0' : '#f00';
-        miniBoard.element.innerHTML = `<span style="font-size:72px;">${winner}</span>`;
+        miniBoard.element.classList.add(`winner-${winner}`);
+        miniBoard.element.innerHTML = `<span>${winner}</span>`; // Centrado
     }
 }
 
@@ -144,26 +171,56 @@ function checkGameWinner() {
     const winner = calculateWinner(mainBoardState);
     if (winner) {
         gameActive = false;
-        updateMessage(`¡${winner} ha ganado el juego!`);
         playWinSound();
-        if (gameMode === 'cpu' && winner === 'X') {
-            calculateScore();
-            addToHistory(`Ganaste contra la CPU (${difficulty})`);
-        } else if (gameMode === 'cpu' && winner === 'O') {
-            addToHistory(`Perdiste contra la CPU (${difficulty})`);
-        } else {
-            addToHistory(`¡${winner} ha ganado!`);
-        }
+        clearInterval(timerInterval);
+        calculateScore(); // Calcula el puntaje y formatea el tiempo
+        showGameOverModal(`${winner} ha ganado el juego`);
+        addToHistory(`${winner} ha ganado`, Math.round(score), formattedTime);
     } else if (isBoardFull(mainBoardState)) {
         gameActive = false;
-        updateMessage('¡Es un empate!');
         playDrawSound();
-        addToHistory('Empate');
+        clearInterval(timerInterval);
+        calculateScore(); // Calcula el puntaje y formatea el tiempo
+        showGameOverModal('¡Es un empate!');
+        addToHistory('Empate', Math.round(score), formattedTime);
     }
 }
 
+function showGameOverModal(message) {
+    const modal = document.getElementById('game-over-modal');
+    const messageElement = document.getElementById('game-over-message');
+    const detailsElement = document.getElementById('game-over-details');
+
+    messageElement.textContent = message;
+    detailsElement.innerHTML = `Puntuación: ${Math.round(score)}<br>Tiempo: ${formattedTime}`;
+
+    modal.style.display = 'block';
+}
+
+
 function isBoardFull(board) {
     return board.every(cell => cell !== '');
+}
+
+function isDrawImminent() {
+    // Comprueba si no hay posibilidades de ganar para ninguno
+    const mainBoardState = mainBoard.map(board => board.winner || '');
+    const availableBoards = mainBoard.filter(board => !board.winner && !isBoardFull(board.cells));
+
+    if (availableBoards.length === 0 && !calculateWinner(mainBoardState)) {
+        return true;
+    }
+    return false;
+}
+
+function showDrawModal() {
+    const modal = document.getElementById('draw-modal');
+    modal.style.display = 'block';
+}
+
+function retryGame() {
+    document.getElementById('draw-modal').style.display = 'none';
+    resetGame();
 }
 
 function calculateWinner(cells) {
@@ -182,6 +239,7 @@ function calculateWinner(cells) {
 }
 
 function resetGame() {
+    clearInterval(timerInterval);
     initGame();
     playClickSound();
 }
@@ -286,24 +344,32 @@ function minimax(newBoard, player) {
 
 // Funciones para sonidos
 function playPlaceSound() {
-    document.getElementById('place-sound').play();
+    const sound = document.getElementById('place-sound');
+    sound.currentTime = 0; // Reinicia el sonido
+    sound.play();
 }
 
 function playWinSound() {
-    document.getElementById('win-sound').play();
+    const sound = document.getElementById('win-sound');
+    sound.currentTime = 0; // Reinicia el sonido
+    sound.play();
 }
 
 function playDrawSound() {
-    document.getElementById('draw-sound').play();
+    const sound = document.getElementById('draw-sound');
+    sound.currentTime = 0; // Reinicia el sonido
+    sound.play();
 }
 
 function playClickSound() {
-    document.getElementById('click-sound').play();
+    const sound = document.getElementById('click-sound');
+    sound.currentTime = 0; // Reinicia el sonido
+    sound.play();
 }
 
 // Historial de partidas
-function addToHistory(result) {
-    history.push(result);
+function addToHistory(result, score, time) {
+    history.push({ result, score, time });
     updateHistory();
 }
 
@@ -311,21 +377,28 @@ function updateHistory() {
     const historyContainer = document.getElementById('history-container');
     const historyList = document.getElementById('history-list');
     historyList.innerHTML = '';
-    history.forEach((result, index) => {
+    history.forEach((entry, index) => {
         const listItem = document.createElement('li');
-        listItem.textContent = `Partida ${index + 1}: ${result}`;
+        listItem.textContent = `Partida ${index + 1}: ${entry.result} - Puntuación: ${entry.score} - Tiempo: ${entry.time}`;
         historyList.appendChild(listItem);
     });
     historyContainer.style.display = 'block';
 }
 
+
 // Sistema de puntuación
 function calculateScore() {
-    const timeTaken = (Date.now() - gameStartTime) / 1000; // Tiempo en segundos
-    const score = Math.max(10000 - (moveCount * 100 + timeTaken * 10), 0);
+    const timeElapsed = Math.floor((Date.now() - gameStartTime) / 1000);
+    const minutes = Math.floor(timeElapsed / 60).toString().padStart(2, '0');
+    const seconds = (timeElapsed % 60).toString().padStart(2, '0');
+    formattedTime = `${minutes}:${seconds}`;
+
+    score = Math.max(10000 - (moveCount * 100 + timeElapsed * 10), 0);
     document.getElementById('current-score').textContent = Math.round(score);
+    document.getElementById('score').style.display = 'block'; // Mostramos el puntaje al final
     saveHighScore(score);
 }
+
 
 function saveHighScore(score) {
     highScores.push(Math.round(score));
