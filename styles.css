@@ -1,0 +1,138 @@
+/* Estilos generales */
+body {
+    font-family: 'Press Start 2P', cursive;
+    background-color: #1e1e1e;
+    color: #fff;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+/* Menú principal */
+.menu {
+    margin-top: 50px;
+}
+
+.menu h1 {
+    font-size: 48px;
+    margin-bottom: 30px;
+}
+
+.menu button {
+    font-size: 20px;
+    padding: 15px 30px;
+    margin: 10px;
+    cursor: pointer;
+    background-color: #444;
+    color: #fff;
+    border: none;
+    transition: background-color 0.3s;
+}
+
+.menu button:hover {
+    background-color: #666;
+}
+
+/* Contenedor del juego */
+#game-container {
+    margin-top: 20px;
+}
+
+#board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    margin: 0 auto;
+    max-width: 600px;
+}
+
+.mini-board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    background-color: #333;
+    padding: 5px;
+    position: relative;
+    transition: transform 0.3s;
+}
+
+.mini-board.active {
+    outline: 3px solid #fff;
+    transform: scale(1.05);
+}
+
+.cell {
+    width: 100%;
+    padding-top: 100%;
+    position: relative;
+    background-color: #555;
+    border: 1px solid #444;
+    font-size: 36px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.cell.disabled {
+    background-color: #222;
+    cursor: not-allowed;
+}
+
+.cell:after {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.cell span {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#message {
+    margin: 20px;
+    font-size: 24px;
+}
+
+/* Botón de reinicio */
+#game-container button {
+    font-size: 18px;
+    padding: 10px 20px;
+    cursor: pointer;
+    background-color: #444;
+    color: #fff;
+    border: none;
+    transition: background-color 0.3s;
+}
+
+#game-container button:hover {
+    background-color: #666;
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+    .menu h1 {
+        font-size: 36px;
+    }
+
+    .menu button {
+        font-size: 18px;
+        padding: 10px 20px;
+    }
+
+    #board {
+        max-width: 90%;
+    }
+
+    #message {
+        font-size: 20px;
+    }
+
+    #game-container button {
+        font-size: 16px;
+    }
+}
