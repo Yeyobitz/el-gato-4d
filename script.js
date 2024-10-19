@@ -5,6 +5,9 @@ let mainBoard = [];
 let activeBoard = null;
 let gameActive = true;
 let history = [];
+let highScores = [];
+let moveCount = 0;
+let gameStartTime = null;
 
 function showDifficulty(mode) {
     gameMode = mode;
@@ -21,6 +24,11 @@ function startGame(mode, selectedDifficulty) {
     document.getElementById('main-menu').style.display = 'none';
     document.getElementById('difficulty-menu').style.display = 'none';
     document.getElementById('game-container').style.display = 'block';
+    if (gameMode === 'cpu') {
+        document.getElementById('score').style.display = 'block';
+    } else {
+        document.getElementById('score').style.display = 'none';
+    }
     initGame();
     playClickSound();
 }
@@ -30,11 +38,13 @@ function backToMainMenu() {
     document.getElementById('difficulty-menu').style.display = 'none';
     document.getElementById('main-menu').style.display = 'block';
     document.getElementById('history-container').style.display = 'none';
+    document.getElementById('highscore-container').style.display = 'none';
     playClickSound();
 }
 
 function exitGame() {
-    window.close();
+    // window.close(); // No funciona en navegadores por seguridad
+    backToMainMenu();
 }
 
 function initGame() {
@@ -49,6 +59,9 @@ function initGame() {
     activeBoard = null;
     gameActive = true;
     currentPlayer = 'X';
+    moveCount = 0;
+    gameStartTime = Date.now();
+    document.getElementById('current-score').textContent = '0';
     drawBoard();
     updateMessage(`Turno de ${currentPlayer}`);
 }
@@ -95,6 +108,7 @@ function handleCellClick(boardIndex, cellIndex) {
     const miniBoard = mainBoard[boardIndex];
     if (miniBoard.cells[cellIndex] !== '') return;
     miniBoard.cells[cellIndex] = currentPlayer;
+    moveCount++;
     playPlaceSound();
     checkMiniBoardWinner(miniBoard, boardIndex);
     activeBoard = mainBoard[cellIndex].winner || isBoardFull(mainBoard[cellIndex].cells) ? null : cellIndex;
@@ -132,7 +146,14 @@ function checkGameWinner() {
         gameActive = false;
         updateMessage(`¡${winner} ha ganado el juego!`);
         playWinSound();
-        addToHistory(winner);
+        if (gameMode === 'cpu' && winner === 'X') {
+            calculateScore();
+            addToHistory(`Ganaste contra la CPU (${difficulty})`);
+        } else if (gameMode === 'cpu' && winner === 'O') {
+            addToHistory(`Perdiste contra la CPU (${difficulty})`);
+        } else {
+            addToHistory(`¡${winner} ha ganado!`);
+        }
     } else if (isBoardFull(mainBoardState)) {
         gameActive = false;
         updateMessage('¡Es un empate!');
@@ -296,4 +317,41 @@ function updateHistory() {
         historyList.appendChild(listItem);
     });
     historyContainer.style.display = 'block';
+}
+
+// Sistema de puntuación
+function calculateScore() {
+    const timeTaken = (Date.now() - gameStartTime) / 1000; // Tiempo en segundos
+    const score = Math.max(10000 - (moveCount * 100 + timeTaken * 10), 0);
+    document.getElementById('current-score').textContent = Math.round(score);
+    saveHighScore(score);
+}
+
+function saveHighScore(score) {
+    highScores.push(Math.round(score));
+    highScores.sort((a, b) => b - a);
+    if (highScores.length > 10) {
+        highScores = highScores.slice(0, 10);
+    }
+    updateHighScores();
+}
+
+function updateHighScores() {
+    const highscoreContainer = document.getElementById('highscore-container');
+    const highscoreList = document.getElementById('highscore-list');
+    highscoreList.innerHTML = '';
+    highScores.forEach((score, index) => {
+        const listItem = document.createElement('li');
+        listItem.textContent = `#${index + 1}: ${score} puntos`;
+        highscoreList.appendChild(listItem);
+    });
+    // No mostramos el contenedor aquí para que solo se muestre cuando el usuario lo solicite
+}
+
+function showHighScores() {
+    document.getElementById('main-menu').style.display = 'none';
+    updateHighScores(); // Actualizamos la lista antes de mostrarla
+    const highscoreContainer = document.getElementById('highscore-container');
+    highscoreContainer.style.display = 'block';
+    playClickSound();
 }

@@ -4,13 +4,17 @@
     <meta charset="UTF-8">
     <title>EL GATO 4D</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <!-- Fuentes para diseño atractivo -->
+    <link href="https://fonts.googleapis.com/css?family=Press+Start+2P|Roboto:400,700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div id="main-menu" class="menu">
-        <h1>EL GATO 4D</h1>
+        <div class="logo-container">
+            <img src="images/logo.png" alt="EL GATO 4D">
+        </div>
         <button onclick="showDifficulty('cpu')">P1 vs CPU</button>
         <button onclick="startGame('pvp')">P1 vs P2</button>
+        <button onclick="showHighScores()">High Scores</button>
         <button onclick="exitGame()">Salir</button>
     </div>
 
@@ -25,6 +29,7 @@
     <div id="game-container" style="display: none;">
         <div id="board"></div>
         <div id="message"></div>
+        <div id="score" style="display: none;">Puntuación: <span id="current-score">0</span></div>
         <button onclick="resetGame()">Reiniciar Juego</button>
         <button onclick="backToMainMenu()">Menú Principal</button>
     </div>
@@ -34,6 +39,13 @@
         <ul id="history-list"></ul>
     </div>
 
+    <div id="highscore-container" style="display: none;">
+        <h2>High Scores</h2>
+        <ul id="highscore-list"></ul>
+        <button onclick="backToMainMenu()">Atrás</button>
+    </div>
+
+    <!-- Elementos de audio para sonidos -->
     <audio id="place-sound" src="sounds/place.wav"></audio>
     <audio id="win-sound" src="sounds/win.wav"></audio>
     <audio id="draw-sound" src="sounds/draw.wav"></audio>

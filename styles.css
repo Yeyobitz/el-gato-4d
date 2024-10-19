@@ -1,7 +1,7 @@
 /* Estilos generales */
 body {
-    font-family: 'Press Start 2P', cursive;
-    background-color: #1e1e1e;
+    font-family: 'Roboto', sans-serif;
+    background-color: #300f21;
     color: #fff;
     text-align: center;
     margin: 0;
@@ -13,7 +13,17 @@ body {
     margin-top: 50px;
 }
 
+.logo-container {
+    margin-bottom: 30px;
+}
+
+.logo-container img {
+    max-width: 500px;
+    width: 80%;
+}
+
 .menu h1, .menu h2 {
+    font-family: 'Press Start 2P', cursive;
     font-size: 48px;
     margin-bottom: 30px;
 }
@@ -26,11 +36,13 @@ body {
     background-color: #444;
     color: #fff;
     border: none;
-    transition: background-color 0.3s;
+    border-radius: 5px;
+    transition: background-color 0.3s, transform 0.2s;
 }
 
 .menu button:hover {
     background-color: #666;
+    transform: scale(1.05);
 }
 
 /* Contenedor del juego */
@@ -98,6 +110,12 @@ body {
     font-size: 24px;
 }
 
+/* Puntuación */
+#score {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
 /* Botones del juego */
 #game-container button {
     font-size: 18px;
@@ -107,29 +125,31 @@ body {
     background-color: #444;
     color: #fff;
     border: none;
-    transition: background-color 0.3s;
+    border-radius: 5px;
+    transition: background-color 0.3s, transform 0.2s;
 }
 
 #game-container button:hover {
     background-color: #666;
+    transform: scale(1.05);
 }
 
-/* Historial de partidas */
-#history-container {
+/* Historial de partidas y High Scores */
+#history-container, #highscore-container {
     margin-top: 30px;
 }
 
-#history-container h2 {
+#history-container h2, #highscore-container h2 {
     font-size: 36px;
 }
 
-#history-list {
+#history-list, #highscore-list {
     list-style-type: none;
     padding: 0;
     font-size: 18px;
 }
 
-#history-list li {
+#history-list li, #highscore-list li {
     margin: 5px 0;
 }
 
@@ -150,5 +170,9 @@ body {
 
     #game-container button {
         font-size: 16px;
+    }
+
+    .logo-container img {
+        max-width: 200px;
     }
 }
