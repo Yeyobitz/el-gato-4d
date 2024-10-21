@@ -1,3 +1,4 @@
+// Variables globales
 let gameMode = '';
 let difficulty = 'medium';
 let currentPlayer = 'X';
@@ -9,9 +10,31 @@ let highScores = [];
 let moveCount = 0;
 let gameStartTime = null;
 let timerInterval = null;
+let sfxEnabled = true;
+let bgmEnabled = true;
 let score = 0;
 let formattedTime = '00:00';
 
+// Variables para manejo de audio
+let mainMenuBGM;
+let gameBGM;
+
+window.onload = function() {
+    // Variables relacionadas con el DOM
+    mainMenuBGM = document.getElementById('bgm-main-menu');
+    mainMenuBGM.src = 'music/main_menu.mp3'; // Asegúrate de tener este archivo
+
+    gameBGM = document.getElementById('bgm-game');
+    gameBGM.addEventListener('ended', function() {
+        nextSong();
+    });
+
+
+    // Inicia la música del menú principal
+    playMainMenuBGM();
+};
+
+// Funciones de navegación y menú
 function showDifficulty(mode) {
     gameMode = mode;
     document.getElementById('main-menu').style.display = 'none';
@@ -27,23 +50,28 @@ function startGame(mode, selectedDifficulty) {
     document.getElementById('main-menu').style.display = 'none';
     document.getElementById('difficulty-menu').style.display = 'none';
     document.getElementById('game-container').style.display = 'block';
-    if (gameMode === 'cpu') {
-        document.getElementById('score').style.display = 'block';
-    } else {
-        document.getElementById('score').style.display = 'none';
-    }
-    initGame();
     playClickSound();
+    stopMainMenuBGM();
+    playGameBGM();
+    initGame();
 }
 
 function backToMainMenu() {
+    // Oculta todos los menús
     document.getElementById('game-container').style.display = 'none';
     document.getElementById('difficulty-menu').style.display = 'none';
     document.getElementById('main-menu').style.display = 'block';
-    document.getElementById('history-container').style.display = 'none';
-    document.getElementById('highscore-container').style.display = 'none';
     document.getElementById('draw-modal').style.display = 'none';
+    document.getElementById('game-over-modal').style.display = 'none';
     clearInterval(timerInterval);
+    playClickSound();
+    stopGameBGM();
+    playMainMenuBGM();
+}
+
+function showOptions() {
+    document.getElementById('main-menu').style.display = 'none';
+    document.getElementById('options-menu').style.display = 'block';
     playClickSound();
 }
 
@@ -52,12 +80,9 @@ function exitGame() {
     backToMainMenu();
 }
 
+// Funciones del juego
 function initGame() {
     mainBoard = [];
-    score = 0;
-    formattedTime = '00:00';
-    document.getElementById('game-over-modal').style.display = 'none';
-    document.getElementById('score').style.display = 'none'; // Ocultamos el puntaje al iniciar
     for (let i = 0; i < 9; i++) {
         mainBoard.push({
             cells: Array(9).fill(''),
@@ -70,8 +95,12 @@ function initGame() {
     currentPlayer = 'X';
     moveCount = 0;
     gameStartTime = Date.now();
+    score = 0;
+    formattedTime = '00:00';
+    document.getElementById('score').style.display = 'none';
     document.getElementById('current-score').textContent = '0';
-    document.getElementById('time-elapsed').textContent = '0';
+    document.getElementById('time-elapsed').textContent = '00:00';
+    document.getElementById('game-over-modal').style.display = 'none';
     startTimer();
     drawBoard();
     updateMessage(`Turno de ${currentPlayer}`);
@@ -131,6 +160,18 @@ function handleCellClick(boardIndex, cellIndex) {
     miniBoard.cells[cellIndex] = currentPlayer;
     moveCount++;
     playPlaceSound();
+
+    const cellElement = miniBoard.element.children[cellIndex];
+    const symbolSpan = document.createElement('span');
+    symbolSpan.textContent = currentPlayer;
+    symbolSpan.classList.add('new-symbol');
+    cellElement.appendChild(symbolSpan);
+
+    // Remove the 'new-symbol' class after the animation completes
+    setTimeout(() => {
+        symbolSpan.classList.remove('new-symbol');
+    }, 500);
+
     checkMiniBoardWinner(miniBoard, boardIndex);
     activeBoard = mainBoard[cellIndex].winner || isBoardFull(mainBoard[cellIndex].cells) ? null : cellIndex;
     drawBoard();
@@ -145,10 +186,13 @@ function handleCellClick(boardIndex, cellIndex) {
     switchPlayer();
     updateMessage(`Turno de ${currentPlayer}`);
     if (gameMode === 'cpu' && currentPlayer === 'O') {
-        setTimeout(cpuMove, 500);
+        showAIThinkingModal();
+        setTimeout(() => {
+            cpuMove();
+            hideAIThinkingModal();
+        }, 3000); // 3000 milisegundos = 3 segundos
     }
 }
-
 function switchPlayer() {
     currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
 }
@@ -186,18 +230,6 @@ function checkGameWinner() {
     }
 }
 
-function showGameOverModal(message) {
-    const modal = document.getElementById('game-over-modal');
-    const messageElement = document.getElementById('game-over-message');
-    const detailsElement = document.getElementById('game-over-details');
-
-    messageElement.textContent = message;
-    detailsElement.innerHTML = `Puntuación: ${Math.round(score)}<br>Tiempo: ${formattedTime}`;
-
-    modal.style.display = 'block';
-}
-
-
 function isBoardFull(board) {
     return board.every(cell => cell !== '');
 }
@@ -215,6 +247,17 @@ function isDrawImminent() {
 
 function showDrawModal() {
     const modal = document.getElementById('draw-modal');
+    modal.style.display = 'block';
+}
+
+function showGameOverModal(message) {
+    const modal = document.getElementById('game-over-modal');
+    const messageElement = document.getElementById('game-over-message');
+    const detailsElement = document.getElementById('game-over-details');
+
+    messageElement.textContent = message;
+    detailsElement.innerHTML = `Puntuación: ${Math.round(score)}<br>Tiempo: ${formattedTime}`;
+
     modal.style.display = 'block';
 }
 
@@ -264,11 +307,11 @@ function getRandomBoardIndex() {
 function getBestMove(board, difficultyLevel) {
     const cells = board.cells.slice();
     if (difficultyLevel === 'easy') {
-        return getRandomCellIndex(cells);
-    } else if (difficultyLevel === 'medium') {
         return mediumAIMove(cells);
-    } else {
+    } else if (difficultyLevel === 'medium') {
         return minimax(cells, 'O').index;
+    } else {
+        return advancedAIMove(cells, 3); // Profundidad de 3
     }
 }
 
@@ -342,29 +385,141 @@ function minimax(newBoard, player) {
     return moves[bestMove];
 }
 
+function advancedAIMove(cells, depth) {
+    const bestMove = minimaxAlphaBeta(cells, depth, -Infinity, Infinity, true);
+    return bestMove.index;
+}
+
+function minimaxAlphaBeta(board, depth, alpha, beta, isMaximizingPlayer) {
+    const availSpots = board
+        .map((cell, index) => cell === '' ? index : null)
+        .filter(index => index !== null);
+
+    const winner = calculateWinner(board);
+    if (winner === 'O') {
+        return { score: 100 - depth };
+    } else if (winner === 'X') {
+        return { score: -100 + depth };
+    } else if (availSpots.length === 0 || depth === 0) {
+        return { score: evaluateBoard(board) };
+    }
+
+    let bestMove;
+    if (isMaximizingPlayer) {
+        let maxEval = -Infinity;
+        for (let i = 0; i < availSpots.length; i++) {
+            const index = availSpots[i];
+            board[index] = 'O';
+            const eval = minimaxAlphaBeta(board, depth - 1, alpha, beta, false).score;
+            board[index] = '';
+            if (eval > maxEval) {
+                maxEval = eval;
+                bestMove = { index, score: maxEval };
+            }
+            alpha = Math.max(alpha, eval);
+            if (beta <= alpha) {
+                break;
+            }
+        }
+        return bestMove || { score: maxEval };
+    } else {
+        let minEval = Infinity;
+        for (let i = 0; i < availSpots.length; i++) {
+            const index = availSpots[i];
+            board[index] = 'X';
+            const eval = minimaxAlphaBeta(board, depth - 1, alpha, beta, true).score;
+            board[index] = '';
+            if (eval < minEval) {
+                minEval = eval;
+                bestMove = { index, score: minEval };
+            }
+            beta = Math.min(beta, eval);
+            if (beta <= alpha) {
+                break;
+            }
+        }
+        return bestMove || { score: minEval };
+    }
+}
+
+function evaluateBoard(board) {
+    // Evaluamos el tablero según la cantidad de líneas potenciales
+    const lines = [
+        [0,1,2], [3,4,5], [6,7,8], // Filas
+        [0,3,6], [1,4,7], [2,5,8], // Columnas
+        [0,4,8], [2,4,6]           // Diagonales
+    ];
+    let score = 0;
+
+    for (let line of lines) {
+        let [a, b, c] = line;
+        let lineValues = [board[a], board[b], board[c]];
+
+        score += evaluateLine(lineValues);
+    }
+    return score;
+}
+
+function evaluateLine(line) {
+    let score = 0;
+
+    if (line.filter(cell => cell === 'O').length === 3) {
+        score += 100;
+    } else if (line.filter(cell => cell === 'O').length === 2 && line.includes('')) {
+        score += 10;
+    } else if (line.filter(cell => cell === 'O').length === 1 && line.filter(cell => cell === '').length === 2) {
+        score += 1;
+    }
+
+    if (line.filter(cell => cell === 'X').length === 3) {
+        score -= 100;
+    } else if (line.filter(cell => cell === 'X').length === 2 && line.includes('')) {
+        score -= 10;
+    } else if (line.filter(cell => cell === 'X').length === 1 && line.filter(cell => cell === '').length === 2) {
+        score -= 1;
+    }
+
+    return score;
+}
+
+function getRandomCellIndex(cells) {
+    const availableCells = cells
+        .map((cell, index) => cell === '' ? index : null)
+        .filter(index => index !== null);
+    return availableCells.length > 0 ? availableCells[Math.floor(Math.random() * availableCells.length)] : null;
+}
+
 // Funciones para sonidos
 function playPlaceSound() {
-    const sound = document.getElementById('place-sound');
-    sound.currentTime = 0; // Reinicia el sonido
-    sound.play();
+    if (sfxEnabled) {
+        const sound = document.getElementById('place-sound');
+        sound.currentTime = 0;
+        sound.play();
+    }
 }
 
 function playWinSound() {
-    const sound = document.getElementById('win-sound');
-    sound.currentTime = 0; // Reinicia el sonido
-    sound.play();
+    if (sfxEnabled) {
+        const sound = document.getElementById('win-sound');
+        sound.currentTime = 0;
+        sound.play();
+    }
 }
 
 function playDrawSound() {
-    const sound = document.getElementById('draw-sound');
-    sound.currentTime = 0; // Reinicia el sonido
-    sound.play();
+    if (sfxEnabled) {
+        const sound = document.getElementById('draw-sound');
+        sound.currentTime = 0;
+        sound.play();
+    }
 }
 
 function playClickSound() {
-    const sound = document.getElementById('click-sound');
-    sound.currentTime = 0; // Reinicia el sonido
-    sound.play();
+    if (sfxEnabled) {
+        const sound = document.getElementById('click-sound');
+        sound.currentTime = 0;
+        sound.play();
+    }
 }
 
 // Historial de partidas
@@ -385,7 +540,6 @@ function updateHistory() {
     historyContainer.style.display = 'block';
 }
 
-
 // Sistema de puntuación
 function calculateScore() {
     const timeElapsed = Math.floor((Date.now() - gameStartTime) / 1000);
@@ -398,7 +552,6 @@ function calculateScore() {
     document.getElementById('score').style.display = 'block'; // Mostramos el puntaje al final
     saveHighScore(score);
 }
-
 
 function saveHighScore(score) {
     highScores.push(Math.round(score));
@@ -418,7 +571,6 @@ function updateHighScores() {
         listItem.textContent = `#${index + 1}: ${score} puntos`;
         highscoreList.appendChild(listItem);
     });
-    // No mostramos el contenedor aquí para que solo se muestre cuando el usuario lo solicite
 }
 
 function showHighScores() {
@@ -427,4 +579,39 @@ function showHighScores() {
     const highscoreContainer = document.getElementById('highscore-container');
     highscoreContainer.style.display = 'block';
     playClickSound();
+}
+
+// Funciones para manejar BGM
+function playMainMenuBGM() {
+    if (bgmEnabled) {
+        mainMenuBGM.play();
+    }
+}
+
+function stopMainMenuBGM() {
+    mainMenuBGM.pause();
+    mainMenuBGM.currentTime = 0;
+}
+
+function playGameBGM() {
+    if (bgmEnabled) {
+        gameBGM.src = 'music/main_game.mp3';
+        gameBGM.play();
+    }
+}
+
+function stopGameBGM() {
+    gameBGM.pause();
+    gameBGM.currentTime = 0;
+}
+
+
+function showAIThinkingModal() {
+    const modal = document.getElementById('ai-thinking-modal');
+    modal.style.display = 'block';
+}
+
+function hideAIThinkingModal() {
+    const modal = document.getElementById('ai-thinking-modal');
+    modal.style.display = 'none';
 }

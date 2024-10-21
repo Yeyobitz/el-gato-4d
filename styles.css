@@ -1,12 +1,20 @@
 /* Estilos generales */
 body {
-    font-family: 'Press Start 2P', cursive;
-    background-color: #111; /* Fondo negro */
+    font-family: 'Press start 2p', sans-serif;
+    background-color: #000; /* Fondo negro */
     color: #fff;
     text-align: center;
     margin: 0;
     padding: 0;
     overflow-x: hidden;
+    /* Ocultamos el contenido al inicio para el fade-in */
+    opacity: 0;
+    animation: bodyFadeIn 1s forwards;
+    animation-delay: 0s; /* Inicia de inmediato */
+}
+
+@keyframes bodyFadeIn {
+    to { opacity: 1; }
 }
 
 /* Posicionamiento del temporizador */
@@ -19,31 +27,52 @@ body {
     z-index: 1000;
 }
 
+/* Contenedor principal */
+#main-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
 /* Menú principal y de dificultad */
 .menu {
-    margin-top: 50px;
+    margin-top: 10px;
     animation: fadeIn 1s;
 }
 
 .logo-container {
+    margin-top: 30px;
     margin-bottom: 30px;
 }
 
 .logo-container h1 {
-    font-size: 36px;
-    color: #fff;
+    font-size: 5vw;
+    color: #f4f4f4;
     text-shadow: 2px 2px 0px #000;
+    transition: transform 0.1s;
+}
+.logo-container h1:hover {
+    transform: scale(1.05);
+    transition: transform 0.3s;
+    color: #fff;
 }
 
 .menu h2 {
-    font-size: 24px;
+    font-size: 1.5vw;
     margin-bottom: 20px;
-    color: #fff;
+    color: #f4f4f4;
+    transition: transform 0.1s;
+}
+
+.menu h2:hover {
+    transform: scale(1.05);
+    transition: transform 0.3s;
 }
 
 .menu button {
     font-size: 16px;
-    padding: 10px 20px;
+    width: 150px;
+    padding: 8px 20px;
     margin: 10px;
     cursor: pointer;
     background-color: #222;
@@ -57,6 +86,13 @@ body {
     background-color: #444;
     transform: scale(1.05);
 }
+
+.menu-options {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
 
 /* Contenedor del juego */
 #game-container {
@@ -74,8 +110,8 @@ body {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 5px;
-    max-width: 90vmin; /* Asegura que el tablero sea más pequeño que la pantalla */
-    max-height: 90vmin;
+    max-width: 80vmin; /* Asegura que el tablero sea más pequeño que la pantalla */
+    max-height: 80vmin;
     margin: 0 auto;
 }
 
@@ -91,8 +127,21 @@ body {
 }
 
 .mini-board.active {
-    outline: 2px dashed #fff;
-    transform: scale(1.02);
+    animation: pulse 2s infinite ease-in-out;
+    outline: 1px  #ababab;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+        outline: 3px dashed rgba(255, 255, 255, 0.7);
+        z-index: 1;
+    }
+    100% {
+        box-shadow: 0 0 0 50px rgba(255, 255, 255, 0);
+        outline: 10px dashed rgba(255, 255, 255, 0);
+        z-index: 1;
+    }
 }
 
 .mini-board.winner-X,
@@ -168,16 +217,28 @@ body {
 
 /* Animaciones para los símbolos */
 .cell span {
-    animation: blink 1s infinite;
+    animation: subtleGlow 2s infinite alternate;
 }
 
-@keyframes blink {
-    50% {opacity: 5;}
+.cell span.new-symbol {
+    animation: newSymbolAnimation 0.5s ease-out;
+}
+
+@keyframes newSymbolAnimation {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
 }
 
 /* Mensaje del juego */
 #message {
     margin: 20px;
+    margin-top: 40px;
     font-size: 18px;
     color: #ccc;
     text-align: center;
@@ -302,7 +363,7 @@ body {
 }
 
 .modal-content button {
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Press start 2p', roboto, sans-serif;
     font-size: 16px;
     padding: 10px 20px;
     margin: 10px;
@@ -328,6 +389,7 @@ body {
 /* Estilos responsivos */
 @media (max-width: 768px) {
     .mini-board {
+        margin-top: 10px;
         width: calc(90vmin / 3 - 10px);
         height: calc(90vmin / 3 - 10px);
     }
@@ -343,4 +405,67 @@ body {
     #game-info button {
         width: 80%;
     }
+}
+
+/* Estilos para los controles de BGM */
+#bgm-controls {
+    margin-top: 20px;
+    text-align: center;
+}
+
+#bgm-controls button {
+    font-family: 'Press start 2p', sans-serif;
+    font-size: 24px;
+    padding: 10px;
+    margin: 5px;
+    cursor: pointer;
+    background-color: #222;
+    color: #fff;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+#bgm-controls button:hover {
+    background-color: #444;
+    transform: scale(1.1);
+}
+
+#current-song-name {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #ccc;
+    word-break: break-all;
+}
+
+/* Estilos para el modal de IA pensando */
+#ai-thinking-modal .modal-content {
+    background-color: rgba(0, 0, 0, 0.1);
+    border: none;
+    animation: none;
+}
+
+#ai-thinking-modal .modal-content h2 {
+    font-size: 24px;
+    color: #fff;
+}
+
+#ai-thinking-modal #dots {
+    display: inline-block;
+    width: 20px;
+    text-align: left;
+}
+
+@keyframes dots {
+    0%   { content: ''; }
+    33%  { content: '.'; }
+    66%  { content: '..'; }
+    100% { content: '...'; }
+}
+
+#ai-thinking-modal #dots::after {
+    content: '';
+    animation: dots 1s steps(3, end) infinite;
 }

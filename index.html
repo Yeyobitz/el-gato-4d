@@ -8,44 +8,56 @@
     <link href="https://fonts.googleapis.com/css?family=Press+Start+2P|Roboto:400,700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div id="main-menu" class="menu">
-        <div class="logo-container">
-            <h1>EL GATO 4D</h1>
+    <!-- Menú principal -->
+    <!-- Contenedor principal -->
+    <div id="main-container">
+        <!-- Menú principal -->
+        <div id="main-menu" class="menu">
+            <div class="logo-container">
+                <h1 class="title">Multiuniversal<br/>Gato</h1>
+                <h2 class="subtitle">A 4D TikTakToe by Yeyo</h2>
+            </div>
+            <div class="menu-options">
+                <button onclick="showDifficulty('cpu')">P1 vs CPU</button>
+                <button onclick="startGame('pvp')">P1 vs P2</button>
+            </div>
         </div>
-        <button onclick="showDifficulty('cpu')">P1 vs CPU</button>
-        <button onclick="startGame('pvp')">P1 vs P2</button>
-        <button onclick="showHighScores()">High Scores</button>
-        <button onclick="exitGame()">Salir</button>
-    </div>
 
-    <div id="difficulty-menu" class="menu" style="display: none;">
-        <h2>Seleccione la dificultad</h2>
-        <button onclick="startGame('cpu', 'easy')">Fácil</button>
-        <button onclick="startGame('cpu', 'medium')">Medio</button>
-        <button onclick="startGame('cpu', 'hard')">Difícil</button>
-        <button onclick="backToMainMenu()">Atrás</button>
-    </div>
+        <!-- Menú de dificultad -->
+        <div id="difficulty-menu" class="menu" style="display: none; margin-top: 36px;">
+            <h2>Seleccione la dificultad</h2>
+            <div class="menu-options">
+                <button onclick="startGame('cpu', 'easy')">Fácil</button>
+                <button onclick="startGame('cpu', 'medium')">Medio</button>
+                <button onclick="startGame('cpu', 'hard')">Difícil</button>
+                <button onclick="backToMainMenu()">Atrás</button>
+            </div>
+        </div>
 
+    <!-- Contenedor del juego -->
     <div id="game-container" style="display: none;">
         <div id="timer"><span id="time-elapsed">00:00</span></div>
         <div id="game-content">
             <div id="board"></div>
             <div id="game-info">
+                <!-- Mensaje de turno debajo del contenedor del juego -->
+                <div id="message"></div>
                 <button onclick="resetGame()">Reiniciar Juego</button>
                 <button onclick="backToMainMenu()">Menú Principal</button>
             </div>
         </div>
-        <!-- Mensaje de turno debajo del contenedor del juego -->
-        <div id="message"></div>
         <!-- Puntaje mostrado al final del juego -->
         <div id="score" style="display: none;">Puntuación: <span id="current-score">0</span></div>
     </div>
 
+    <!-- Contenedor del historial de partidas -->
     <div id="history-container" style="display: none;">
         <h2>Historial de Partidas</h2>
         <ul id="history-list"></ul>
+        <button onclick="backToMainMenu()">Atrás</button>
     </div>
 
+    <!-- Contenedor de High Scores -->
     <div id="highscore-container" style="display: none;">
         <h2>High Scores</h2>
         <ul id="highscore-list"></ul>
@@ -62,21 +74,34 @@
         </div>
     </div>
 
-    <!-- Elementos de audio para sonidos -->
-    <audio id="place-sound" src="sounds/place.wav"></audio>
-    <audio id="win-sound" src="sounds/win.wav"></audio>
-    <audio id="draw-sound" src="sounds/draw.wav"></audio>
-    <audio id="click-sound" src="sounds/click.wav"></audio>
     <!-- Ventana Modal para Fin de Juego -->
-<div id="game-over-modal" class="modal" style="display: none;">
-    <div class="modal-content">
-        <h2 id="game-over-message">¡Juego Terminado!</h2>
-        <p id="game-over-details"></p>
-        <button onclick="resetGame()">Reiniciar Juego</button>
-        <button onclick="backToMainMenu()">Menú Principal</button>
+    <div id="game-over-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2 id="game-over-message">¡Juego Terminado!</h2>
+            <p id="game-over-details"></p>
+            <button onclick="resetGame()">Reiniciar Juego</button>
+            <button onclick="backToMainMenu()">Menú Principal</button>
+        </div>
     </div>
-</div>
 
+    <!-- Ventana Modal para IA pensando -->
+    <div id="ai-thinking-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>IA pensando<span id="dots"></span></h2>
+        </div>
+    </div>
+
+    <!-- Elementos de audio para sonidos -->
+    <audio id="place-sound" src="sounds/place.mp3"></audio>
+    <audio id="win-sound" src="sounds/win.mp3"></audio>
+    <audio id="draw-sound" src="sounds/draw.mp3"></audio>
+    <audio id="click-sound" src="sounds/click.mp3"></audio>
+
+    <!-- Elementos de audio para música de fondo -->
+    <audio id="bgm-main-menu" src="music/main_menu.mp3" loop></audio>
+    <audio id="bgm-game" src="music/main_game.mp3" loop></audio>
+    
+    </div>
     <script src="script.js"></script>
 </body>
 </html>
