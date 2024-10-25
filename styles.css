@@ -1,11 +1,12 @@
 /* Estilos generales */
-body {
+body, html {
     font-family: 'Press start 2p', sans-serif;
     background-color: #000; /* Fondo negro */
     color: #fff;
     text-align: center;
     margin: 0;
     padding: 0;
+    height: 100%;
     overflow-x: hidden;
     /* Ocultamos el contenido al inicio para el fade-in */
     opacity: 0;
@@ -31,7 +32,9 @@ body {
 #main-container {
     display: flex;
     flex-direction: column;
+    justify-content: center;
     align-items: center;
+    height: 100vh; /* Añade esta línea */
 }
 
 /* Menú principal y de dificultad */
@@ -144,9 +147,12 @@ body {
     }
 }
 
-.mini-board.winner-X,
+.mini-board.winner-X {
+    background-color: #005d0690;
+}
+
 .mini-board.winner-O {
-    background-color: #000;
+    background-color: #4e000090;
 }
 
 /* Bordes para crear el '#' gigante */
@@ -277,27 +283,51 @@ body {
 
 /* Ventana Modal */
 .modal {
-    display: none;
+    display: none; /* Oculto por defecto */
     position: fixed;
-    z-index: 2000;
+    z-index: 1000; /* Asegura que esté por encima de otros elementos */
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.9);
+    overflow: hidden; /* Habilita el scroll si es necesario */
+    background-color: rgba(0, 0, 0, 0.8); /* Fondo semi-transparente */
 }
 
 .modal-content {
-    background-color: #111;
-    margin: 15% auto;
+    background-color: #fefefe;
+    margin: 5% auto; /* Centrar vertical y horizontalmente */
     padding: 20px;
-    border: 2px solid #fff;
-    width: 80%;
-    max-width: 500px;
-    border-radius: 5px;
-    text-align: center;
+    border: 1px solid #888;
+    width: 80%; /* Ancho del contenido */
+    max-height: 80%; /* Altura máxima */
+    overflow-y: auto; /* Scroll vertical si el contenido es muy alto */
+    border-radius: 10px;
     animation: fadeIn 0.5s;
+}
+.close {
+    color: #b80000;
+    position: absolute; 
+    top: 10px; 
+    right: 10px; 
+    font-size: 28px; 
+    font-weight: bold; 
+    cursor: pointer;
+}
+.close:hover,
+.close:focus {
+    text-decoration: none;
+    cursor: pointer;
+    color: #ff0000;
+        transform: rotate(90deg) scale(1.2);
+        transition: all 0.3s ease;
+    
+}
+#instructions-modal img {
+    display: block;
+    margin: 20px auto; /* Centra la imagen y añade un margen superior e inferior */
+    max-width: 70%; /* La imagen no excederá el ancho del contenedor */
+    height: auto; /* Mantiene la proporción de la imagen */
 }
 
 .modal-content h2 {
@@ -342,7 +372,6 @@ body {
 
 .modal-content {
     background-color: #111;
-    margin: 15% auto;
     padding: 20px;
     border: 2px solid #fff;
     width: 80%;
@@ -385,6 +414,70 @@ body {
     from { opacity: 0; }
     to { opacity: 1; }
 }
+
+/* Estilos específicos para el modal de pausa */
+#pause-modal .modal-content {
+    background-color: #111;
+    color: #fff;
+    text-align: center;
+}
+
+#pause-modal button {
+    width: 200px;
+    margin: 10px 0;
+    font-size: 16px;
+    padding: 10px;
+    background-color: #222;
+    color: #fff;
+    border: 2px solid #fff;
+    border-radius: 5px;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+#pause-modal button:hover {
+    background-color: #444;
+    transform: scale(1.05);
+}
+
+/* Estilos para el control de volumen */
+.volume-control {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.volume-control label {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.volume-control input[type="range"] {
+    width: 80%;
+    background: #444;
+    height: 10px;
+    border-radius: 5px;
+    outline: none;
+    transition: opacity 0.2s;
+}
+
+.volume-control input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #fff;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+.volume-control input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #fff;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
 
 /* Estilos responsivos */
 @media (max-width: 768px) {
@@ -472,22 +565,21 @@ body {
 
 /* Estrellas */
 
-section #stars{
-    position: absolute;
+#stars {
+    position: fixed; /* Asegura que se mantenga fijo en el fondo */
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100vh;
-    background-color:black;
-    background-size: cover;
-    animation: animateBg 50s linear infinite;
+    width: 100vw; /* Ancho completo de la ventana */
+    height: 100vh; /* Alto completo de la ventana */
+    overflow: hidden; /* Evita que el contenido se desborde */
+    z-index: -1; /* Envía el fondo detrás del contenido principal */
 }
 
 
-#stars span{
+#stars span {
     position: absolute;
-    top:50%;
-    left:50%;
+    top: 0;
+    left: 0;
     width: 4px;
     height: 4px;
     background: #fff;
@@ -590,4 +682,77 @@ section #stars{
     left: initial;
     animation-delay: 2.75s;
     animation-duration: 2.75s;
+}
+
+#music-player {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.controls-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px; /* Adds space between the buttons */
+    margin-top: 10px;
+}
+
+#music-player button {
+    font-size: 24px;
+    padding: 12px;
+    background-color: #222;
+    color: #fff;
+    border: 2px solid #fff;
+    border-radius: 10px;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+#music-player button:hover {
+    background-color: #444;
+    transform: scale(1.1);
+}
+
+#current-song-name {
+    font-size: 16px;
+    color: #ccc;
+    margin-top: 10px;
+}
+
+#volume-slider {
+    width: 80%;
+    margin-top: 10px;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 8px;
+    background: #333;
+    outline: none;
+    border-radius: 10px;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+#volume-slider:hover {
+    opacity: 1;
+}
+
+#volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+}
+
+#volume-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
 }

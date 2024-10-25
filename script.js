@@ -18,6 +18,16 @@ let formattedTime = '00:00';
 // Variables para manejo de audio
 let mainMenuBGM;
 let gameBGM;
+const songs = [
+    'music/bgm/song1.mp3',
+    'music/bgm/song2.mp3',
+    'music/bgm/song3.mp3',
+    'music/bgm/song4.mp3'
+];
+
+let currentSongIndex = 0;
+let audio = new Audio();
+let isPlaying = false;
 
 window.onload = function() {
     // Variables relacionadas con el DOM
@@ -34,6 +44,50 @@ window.onload = function() {
     playMainMenuBGM();
 };
 
+// Initialize the first random song
+function initializeRandomSong() {
+    currentSongIndex = Math.floor(Math.random() * songs.length);
+    loadSong(currentSongIndex);
+}
+
+// Load and play the selected song
+function loadSong(index) {
+    audio.src = songs[index];
+    document.getElementById('song-name').textContent = songs[index].split('/').pop(); // Display file name
+    audio.load();
+    audio.play();
+    isPlaying = true;
+}
+
+// Toggle play/pause
+function togglePlayPause() {
+    if (isPlaying) {
+        audio.pause();
+    } else {
+        audio.play();
+    }
+    isPlaying = !isPlaying;
+}
+
+// Play the next song
+function nextSong() {
+    currentSongIndex = (currentSongIndex + 1) % songs.length;
+    loadSong(currentSongIndex);
+}
+
+// Play the previous song
+function previousSong() {
+    currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+    loadSong(currentSongIndex);
+}
+
+// Stop and reset audio when returning to main menu
+function stopAudio() {
+    audio.pause();
+    audio.currentTime = 0;
+    isPlaying = false;
+}
+
 // Funciones de navegación y menú
 function showDifficulty(mode) {
     gameMode = mode;
@@ -42,6 +96,7 @@ function showDifficulty(mode) {
     playClickSound();
 }
 
+// Initialize music when game starts
 function startGame(mode, selectedDifficulty) {
     if (selectedDifficulty) {
         difficulty = selectedDifficulty;
@@ -53,27 +108,27 @@ function startGame(mode, selectedDifficulty) {
     playClickSound();
     stopMainMenuBGM();
     playGameBGM();
+    initializeRandomSong(); // Start a random song when the game begins
     initGame();
 }
 
 function backToMainMenu() {
-    // Oculta todos los menús
+    // Oculta todos los menús y contenedores
     document.getElementById('game-container').style.display = 'none';
     document.getElementById('difficulty-menu').style.display = 'none';
-    document.getElementById('main-menu').style.display = 'block';
+    document.getElementById('history-container').style.display = 'none';
+    document.getElementById('highscore-container').style.display = 'none';
     document.getElementById('draw-modal').style.display = 'none';
     document.getElementById('game-over-modal').style.display = 'none';
+    document.getElementById('instructions-modal').style.display = 'none';
+    document.getElementById('main-menu').style.display = 'block';
+    document.getElementById('pause-modal').style.display = 'none';
     clearInterval(timerInterval);
     playClickSound();
+    stopAudio(); // Stop music when going back to the main menu
     stopGameBGM();
-    playMainMenuBGM();
-}
+    playMainMenuBGM();}
 
-function showOptions() {
-    document.getElementById('main-menu').style.display = 'none';
-    document.getElementById('options-menu').style.display = 'block';
-    playClickSound();
-}
 
 function exitGame() {
     // No se puede cerrar la ventana en navegadores por seguridad
@@ -109,13 +164,14 @@ function initGame() {
 function startTimer() {
     clearInterval(timerInterval);
     timerInterval = setInterval(() => {
-        const timeElapsed = Math.floor((Date.now() - gameStartTime) / 1000);
-        const minutes = Math.floor(timeElapsed / 60).toString().padStart(2, '0');
-        const seconds = (timeElapsed % 60).toString().padStart(2, '0');
-        document.getElementById('time-elapsed').textContent = `${minutes}:${seconds}`;
+        if (!isGamePaused) {
+            const timeElapsed = Math.floor((Date.now() - gameStartTime) / 1000);
+            const minutes = Math.floor(timeElapsed / 60).toString().padStart(2, '0');
+            const seconds = (timeElapsed % 60).toString().padStart(2, '0');
+            document.getElementById('time-elapsed').textContent = `${minutes}:${seconds}`;
+        }
     }, 1000);
 }
-
 function drawBoard() {
     const boardElement = document.getElementById('board');
     boardElement.innerHTML = '';
@@ -150,7 +206,7 @@ function drawBoard() {
 }
 
 function handleCellClick(boardIndex, cellIndex) {
-    if (!gameActive) return;
+    if (!gameActive || isGamePaused) return; // Añade isGamePaused aquí
     if (activeBoard !== null && activeBoard !== boardIndex) {
         updateMessage(`Debes jugar en el tablero ${activeBoard + 1}`);
         return;
@@ -583,9 +639,7 @@ function showHighScores() {
 
 // Funciones para manejar BGM
 function playMainMenuBGM() {
-    if (bgmEnabled) {
-        mainMenuBGM.play();
-    }
+    mainMenuBGM.play();
 }
 
 function stopMainMenuBGM() {
@@ -614,4 +668,77 @@ function showAIThinkingModal() {
 function hideAIThinkingModal() {
     const modal = document.getElementById('ai-thinking-modal');
     modal.style.display = 'none';
+}
+
+function showInstructions() {
+    // ocultar el modal de pausa si está abierto
+    hidePauseModal();
+    const modal = document.getElementById('instructions-modal');
+    modal.style.display = 'block';
+
+    playClickSound(); // Opcional: Si tienes una función para el sonido de clic
+}
+
+function hideInstructions() {
+    const modal = document.getElementById('instructions-modal');
+    modal.style.display = 'none';
+    playClickSound(); // Opcional: Si tienes una función para el sonido de clic
+}
+
+// Cerrar el modal al hacer clic fuera del contenido
+window.onclick = function(event) {
+    const modal = document.getElementById('instructions-modal');
+    if (event.target == modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Variable para controlar si el juego está en pausa
+let isGamePaused = false;
+
+// Función para pausar el juego
+function pauseGame() {
+    if (!gameActive || isGamePaused) return;
+    isGamePaused = true;
+    clearInterval(timerInterval); // Pausar el temporizador si es necesario
+    showPauseModal();
+}
+
+// Función para reanudar el juego
+function resumeGame() {
+    if (!isGamePaused) return;
+    isGamePaused = false;
+    startTimer(); // Reanudar el temporizador si es necesario
+    hidePauseModal();
+}
+
+// Mostrar el modal de pausa
+function showPauseModal() {
+    const modal = document.getElementById('pause-modal');
+    modal.style.display = 'block';
+}
+
+// Ocultar el modal de pausa
+function hidePauseModal() {
+    const modal = document.getElementById('pause-modal');
+    modal.style.display = 'none';
+}
+
+// Evento para detectar las teclas Esc, P o Espacio
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape' || event.key === 'p' || event.key === 'P' || event.key === ' ') {
+        if (!isGamePaused) {
+            pauseGame();
+        } else {
+            resumeGame();
+        }
+    }
+});
+
+// Función para ajustar el volumen de la música
+function setBGMVolume(volume) {
+    // Set the volume for the current background music
+    if (gameBGM) {
+        gameBGM.volume = volume;
+    }
 }

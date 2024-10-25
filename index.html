@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EL GATO 4D</title>
     <link rel="stylesheet" href="styles.css">
     <!-- Fuentes para diseño retro -->
@@ -33,6 +34,7 @@
             <div class="menu-options">
                 <button onclick="showDifficulty('cpu')">P1 vs CPU</button>
                 <button onclick="startGame('pvp')">P1 vs P2</button>
+                <button id="instructions-button" onclick="showInstructions()">Instrucciones</button>
             </div>
         </div>
 
@@ -55,8 +57,6 @@
             <div id="game-info">
                 <!-- Mensaje de turno debajo del contenedor del juego -->
                 <div id="message"></div>
-                <button onclick="resetGame()">Reiniciar Juego</button>
-                <button onclick="backToMainMenu()">Menú Principal</button>
             </div>
         </div>
         <!-- Puntaje mostrado al final del juego -->
@@ -74,7 +74,6 @@
     <div id="highscore-container" style="display: none;">
         <h2>High Scores</h2>
         <ul id="highscore-list"></ul>
-        <button onclick="backToMainMenu()">Atrás</button>
     </div>
 
     <!-- Ventana Modal para Empate Inminente -->
@@ -103,6 +102,100 @@
             <h2>IA pensando<span id="dots"></span></h2>
         </div>
     </div>
+
+<!-- Modal de Instrucciones -->
+<div id="instructions-modal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="hideInstructions()">&times;</span>
+        <h2>Instrucciones de Juego: Multiuniversal Gato</h2>
+        <p>¡Prepárate para disfrutar de una versión ampliada y emocionante del clásico Tres en Raya!</p>
+        <br/> 
+        <!-- Contenido de las instrucciones -->
+        <h3>Objetivo del Juego</h3>
+        <p>Ser el primero en ganar tres mini-tableros en línea (horizontal, vertical o diagonal) en el tablero principal.</p>
+        <br/> 
+        <h3>Cómo Funciona el Juego</h3>
+
+        <h3>Tablero Principal y Mini-Tableros</h3>
+        <p>El juego se desarrolla en un <strong>tablero principal</strong> compuesto por 9 <strong>mini-tableros</strong> organizados en una cuadrícula de 3x3.</p>
+        <p>
+            <img src="images/instrucciones1.webp" alt="Representación del tablero principal con 9 mini-tableros vacíos">
+        </p>
+        <br/> 
+        <h3>Turnos y Jugadores</h3>
+        <p>Dos jugadores participan en el juego: 'X' y 'O'. Los jugadores se turnan para colocar su símbolo en las casillas.</p>
+        <br/> 
+        <h3>Primer Movimiento</h3>
+        <p>El jugador 'X' comienza el juego y puede colocar su símbolo en <strong>cualquier casilla de cualquier mini-tablero</strong>.</p>
+        <br/> 
+        <h3>Regla de Envío</h3>
+        <p>La <strong>posición</strong> en la que colocas tu símbolo en el mini-tablero actual <strong>determina el mini-tablero</strong> en el que el siguiente jugador debe jugar.</p>
+        <p>Por ejemplo, si colocas tu símbolo en la posición superior izquierda (casilla 1) de un mini-tablero, el próximo jugador debe jugar en el mini-tablero superior izquierdo del tablero principal.</p>
+        <p>
+            <img src="images/instrucciones2.webp" alt="Flecha mostrando cómo una jugada en una casilla específica dirige al siguiente mini-tablero">
+        </p>
+        <br/> 
+        <h3>Mini-Tableros Ganados o Llenos</h3>
+        <p>Si el mini-tablero al que te envían ya está ganado o lleno <h4>PUEDES ELEGIR CUALQUIER <br/> MINI-TABLERO DISPONIBLE</h4> para tu siguiente movimiento.</p>
+        <img src="images/instrucciones5.webp" alt="Todos los mini-tableros disponibles para jugar luego de un movimiento">
+        <br/> 
+        <h3>Ganar un Mini-Tablero</h3>
+        <p>Al obtener tres de tus símbolos en línea (horizontal, vertical o diagonal) en un mini-tablero, lo ganas.</p>
+        <p>El mini-tablero se marcará con tu símbolo grande para indicar tu victoria.</p>
+        <p>
+            <img src="images/instrucciones3.webp" alt="Mini-tablero con una línea de tres 'X' y el símbolo 'X' grande sobre él">
+        </p>
+        <br/> 
+        <h3>Ganar el Juego</h3>
+        <p>El primer jugador en ganar tres mini-tableros en línea en el tablero principal es el ganador del juego.</p>
+        <p>
+            <img src="images/instrucciones4.webp" alt="Tablero principal con tres mini-tableros ganados en línea y resaltados">
+        </p>
+        <br/> <br/> 
+        <h3>Controles del Juego</h3>
+        <p><strong>Seleccionar Casilla</strong>: Haz clic en la casilla donde deseas colocar tu símbolo.</p>
+        <p><strong>Indicaciones Visuales</strong>: El juego resaltará el mini-tablero en el que debes jugar.</p>
+        <p><strong>Mensaje de Turno</strong>: Observa el mensaje en pantalla para saber de quién es el turno y en qué mini-tablero jugar.</p>
+
+        <h3>Consejos Estratégicos</h3>
+        <p><strong>Planifica Tus Movimientos</strong>: Piensa en cómo tu jugada afectará las opciones de tu oponente.</p>
+        <p><strong>Controla el Centro</strong>: Los mini-tableros centrales pueden ser clave para ganar.</p>
+        <p><strong>Bloquea a Tu Oponente</strong>: Evita que tu oponente gane tres mini-tableros en línea.</p>
+
+        <h3>Modalidades de Juego</h3>
+        <p><strong>Jugador vs CPU</strong>: Desafía a la inteligencia artificial en diferentes niveles de dificultad.</p>
+        <p><strong>Jugador vs Jugador</strong>: Juega contra un amigo en el mismo dispositivo.</p>
+
+        <h3>¡Diviértete y Buena Suerte!</h3>
+    </div>
+</div>
+
+<!-- Modal de Pausa -->
+<div id="pause-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h2>Juego en Pausa</h2>
+        <button onclick="resumeGame()">Continuar</button>
+        <button onclick="resetGame()">Reiniciar</button>
+        <button onclick="backToMainMenu()">Menú Principal</button>
+        <button onclick="showInstructions()">Instrucciones</button>
+
+        <div id="music-player" style="text-align: center;">
+            <div class="volume-control">
+                <label for="bgm-volume">Volumen de Música</label>
+                <input type="range" id="bgm-volume" min="0" max="1" step="0.05" value="1" onchange="setBGMVolume(this.value)">
+            </div>
+            <div id="music-controls" class="controls-container">
+                <button onclick="previousSong()">⏮️</button>
+                <button onclick="togglePlayPause()">⏯️</button>
+                <button onclick="nextSong()">⏭️</button>
+            </div>
+            
+            <p id="current-song-name">Playing: <span id="song-name">None</span></p>
+        </div>
+        
+    </div>
+</div>
+
 
     <!-- Elementos de audio para sonidos -->
     <audio id="place-sound" src="sounds/place.mp3"></audio>
