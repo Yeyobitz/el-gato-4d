@@ -795,3 +795,15 @@ body, html {
     background: #fff;
     cursor: pointer;
 }
+
+a {
+    color: #fff;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+a:hover {
+    color: #ccc;
+    text-decoration: underline;
+    text-decoration-color: #ccc;
+}
