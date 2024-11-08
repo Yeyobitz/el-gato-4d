@@ -98,6 +98,7 @@ function showDifficulty(mode) {
 
 // Initialize music when game starts
 function startGame(mode, selectedDifficulty) {
+    isGamePaused = false;
     if (selectedDifficulty) {
         difficulty = selectedDifficulty;
     }
@@ -137,6 +138,9 @@ function exitGame() {
 
 // Funciones del juego
 function initGame() {
+    isGamePaused = false;
+    document.getElementById('game-over-modal').style.display = 'none';
+    
     mainBoard = [];
     for (let i = 0; i < 9; i++) {
         mainBoard.push({
@@ -269,22 +273,42 @@ function checkMiniBoardWinner(miniBoard, index) {
 function checkGameWinner() {
     const mainBoardState = mainBoard.map(board => board.winner || '');
     const winner = calculateWinner(mainBoardState);
+    
     if (winner) {
-        gameActive = false;
-        playWinSound();
-        clearInterval(timerInterval);
-        calculateScore(); // Calcula el puntaje y formatea el tiempo
-        showGameOverModal(`${winner} ha ganado el juego`);
-        addToHistory(`${winner} ha ganado`, Math.round(score), formattedTime);
+        handleWinningGame(winner);
     } else if (isBoardFull(mainBoardState)) {
-        gameActive = false;
-        playDrawSound();
-        clearInterval(timerInterval);
-        calculateScore(); // Calcula el puntaje y formatea el tiempo
-        showGameOverModal('¡Es un empate!');
-        addToHistory('Empate', Math.round(score), formattedTime);
+        const countX = mainBoardState.filter(cell => cell === 'X').length;
+        const countO = mainBoardState.filter(cell => cell === 'O').length;
+        
+        let finalWinner;
+        if (countX > countO) {
+            finalWinner = 'X';
+        } else if (countO > countX) {
+            finalWinner = 'O';
+        } else {
+            finalWinner = 'empate';
+        }
+        
+        handleWinningGame(finalWinner);
     }
 }
+
+function handleWinningGame(winner) {
+    gameActive = false;
+    clearInterval(timerInterval);
+    calculateScore();
+    
+    if (winner === 'empate') {
+        playDrawSound();
+        showGameOverModal('¡Es un empate!');
+        addToHistory('Empate', Math.round(score), formattedTime);
+    } else {
+        playWinSound();
+        showGameOverModal(`${winner} ha ganado el juego`);
+        addToHistory(`${winner} ha ganado`, Math.round(score), formattedTime);
+    }
+}
+
 
 function isBoardFull(board) {
     return board.every(cell => cell !== '');
