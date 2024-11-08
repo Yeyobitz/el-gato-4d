@@ -151,6 +151,8 @@ function exitGame() {
 function initGame() {
     isGamePaused = false;
     document.getElementById('game-over-modal').style.display = 'none';
+    document.getElementById('pause-modal').style.display = 'none';
+    
     
     mainBoard = [];
     for (let i = 0; i < 9; i++) {
@@ -165,10 +167,7 @@ function initGame() {
     currentPlayer = 'X';
     moveCount = 0;
     gameStartTime = Date.now();
-    score = 0;
     formattedTime = '00:00';
-    document.getElementById('score').style.display = 'none';
-    document.getElementById('current-score').textContent = '0';
     document.getElementById('time-elapsed').textContent = '00:00';
     document.getElementById('game-over-modal').style.display = 'none';
     startTimer();
@@ -307,16 +306,13 @@ function checkGameWinner() {
 function handleWinningGame(winner) {
     gameActive = false;
     clearInterval(timerInterval);
-    calculateScore();
     
     if (winner === 'empate') {
         playDrawSound();
         showGameOverModal('¡Es un empate!');
-        addToHistory('Empate', Math.round(score), formattedTime);
     } else {
         playWinSound();
         showGameOverModal(`${winner} ha ganado el juego`);
-        addToHistory(`${winner} ha ganado`, Math.round(score), formattedTime);
     }
 }
 
@@ -344,11 +340,7 @@ function showDrawModal() {
 function showGameOverModal(message) {
     const modal = document.getElementById('game-over-modal');
     const messageElement = document.getElementById('game-over-message');
-    const detailsElement = document.getElementById('game-over-details');
-
     messageElement.textContent = message;
-    detailsElement.innerHTML = `Puntuación: ${Math.round(score)}<br>Tiempo: ${formattedTime}`;
-
     modal.style.display = 'block';
 }
 
@@ -613,47 +605,6 @@ function playClickSound() {
     }
 }
 
-
-// Sistema de puntuación
-function calculateScore() {
-    const timeElapsed = Math.floor((Date.now() - gameStartTime) / 1000);
-    const minutes = Math.floor(timeElapsed / 60).toString().padStart(2, '0');
-    const seconds = (timeElapsed % 60).toString().padStart(2, '0');
-    formattedTime = `${minutes}:${seconds}`;
-
-    score = Math.max(10000 - (moveCount * 100 + timeElapsed * 10), 0);
-    document.getElementById('current-score').textContent = Math.round(score);
-    document.getElementById('score').style.display = 'block'; // Mostramos el puntaje al final
-    saveHighScore(score);
-}
-
-function saveHighScore(score) {
-    highScores.push(Math.round(score));
-    highScores.sort((a, b) => b - a);
-    if (highScores.length > 10) {
-        highScores = highScores.slice(0, 10);
-    }
-    updateHighScores();
-}
-
-function updateHighScores() {
-    const highscoreContainer = document.getElementById('highscore-container');
-    const highscoreList = document.getElementById('highscore-list');
-    highscoreList.innerHTML = '';
-    highScores.forEach((score, index) => {
-        const listItem = document.createElement('li');
-        listItem.textContent = `#${index + 1}: ${score} puntos`;
-        highscoreList.appendChild(listItem);
-    });
-}
-
-function showHighScores() {
-    document.getElementById('main-menu').style.display = 'none';
-    updateHighScores(); // Actualizamos la lista antes de mostrarla
-    const highscoreContainer = document.getElementById('highscore-container');
-    highscoreContainer.style.display = 'block';
-    playClickSound();
-}
 
 // Funciones para manejar BGM
 function playMainMenuBGM() {
