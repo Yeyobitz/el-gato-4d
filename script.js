@@ -128,18 +128,27 @@ function handleWinningGame(winner) {
 }
 
 function backToMainMenu() {
+    // Hide all menus and containers first
     document.getElementById('game-container').style.display = 'none';
     document.getElementById('difficulty-menu').style.display = 'none';
-    document.getElementById('highscore-container').style.display = 'none';
     document.getElementById('draw-modal').style.display = 'none';
     document.getElementById('game-over-modal').style.display = 'none';
     document.getElementById('instructions-modal').style.display = 'none';
-    document.getElementById('main-menu').style.display = 'block';
     document.getElementById('pause-modal').style.display = 'none';
+    
+    // Then show main menu
+    document.getElementById('main-menu').style.display = 'block';
+    
+    // Reset game state
     clearInterval(timerInterval);
+    isGamePaused = false;
+    gameActive = false;
+    
+    // Handle audio
     playClickSound();
-    stopAudio();  // Stop game music
-    playMainMenuBGM();  // Start menu music
+    stopAudio();
+    stopGameBGM();
+    playMainMenuBGM();
 }
 
 function exitGame() {
@@ -152,7 +161,7 @@ function initGame() {
     isGamePaused = false;
     document.getElementById('game-over-modal').style.display = 'none';
     document.getElementById('pause-modal').style.display = 'none';
-    
+
     
     mainBoard = [];
     for (let i = 0; i < 9; i++) {
@@ -645,15 +654,10 @@ function showInstructions() {
 function hideInstructions() {
     const modal = document.getElementById('instructions-modal');
     modal.style.display = 'none';
-    playClickSound(); // Opcional: Si tienes una función para el sonido de clic
-}
-
-// Cerrar el modal al hacer clic fuera del contenido
-window.onclick = function(event) {
-    const modal = document.getElementById('instructions-modal');
-    if (event.target == modal) {
-        modal.style.display = 'none';
+    if (isGamePaused) {
+        showPauseModal();
     }
+    playClickSound();
 }
 
 // Variable para controlar si el juego está en pausa

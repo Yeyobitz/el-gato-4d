@@ -243,12 +243,20 @@ body, html {
 
 /* Mensaje del juego */
 #message {
-    margin: 20px;
-    margin-top: 40px;
+    position: fixed;
+    top: 5px;
+    left: 50%;
+    transform: translateX(-50%);
     font-size: 18px;
     color: #ccc;
     text-align: center;
+    z-index: 1000;
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 10px 20px;
+    border-radius: 5px;
+    width: auto;
 }
+
 
 /* Información y botones del juego */
 #game-info {
@@ -295,22 +303,24 @@ body, html {
 }
 
 .modal-content {
+    position: relative;
     background-color: #fefefe;
     margin: 5% auto; /* Centrar vertical y horizontalmente */
     padding: 20px;
     border: 1px solid #888;
     width: 80%; /* Ancho del contenido */
-    max-height: 80%; /* Altura máxima */
+    max-height: 70%; /* Altura máxima */
     overflow-y: auto; /* Scroll vertical si el contenido es muy alto */
     border-radius: 10px;
     animation: fadeIn 0.5s;
 }
 .close {
     color: #b80000;
-    position: absolute; 
-    top: 10px; 
-    right: 10px; 
+    position: fixed; 
+    top: 20px; 
+    right: 20px; 
     font-size: 28px; 
+    z-index: 1001;
     font-weight: bold; 
     cursor: pointer;
 }
