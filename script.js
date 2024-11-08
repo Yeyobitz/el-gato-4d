@@ -113,11 +113,23 @@ function startGame(mode, selectedDifficulty) {
     initGame();
 }
 
+function handleWinningGame(winner) {
+    gameActive = false;
+    clearInterval(timerInterval);
+    calculateScore();
+    
+    if (winner === 'empate') {
+        playDrawSound();
+        showGameOverModal('¡Es un empate!');
+    } else {
+        playWinSound();
+        showGameOverModal(`${winner} ha ganado el juego`);
+    }
+}
+
 function backToMainMenu() {
-    // Oculta todos los menús y contenedores
     document.getElementById('game-container').style.display = 'none';
     document.getElementById('difficulty-menu').style.display = 'none';
-    document.getElementById('history-container').style.display = 'none';
     document.getElementById('highscore-container').style.display = 'none';
     document.getElementById('draw-modal').style.display = 'none';
     document.getElementById('game-over-modal').style.display = 'none';
@@ -126,11 +138,10 @@ function backToMainMenu() {
     document.getElementById('pause-modal').style.display = 'none';
     clearInterval(timerInterval);
     playClickSound();
-    stopAudio(); // Stop music when going back to the main menu
+    stopAudio();
     stopGameBGM();
-    playMainMenuBGM();}
-
-
+    playMainMenuBGM();
+}
 function exitGame() {
     // No se puede cerrar la ventana en navegadores por seguridad
     backToMainMenu();
@@ -602,23 +613,6 @@ function playClickSound() {
     }
 }
 
-// Historial de partidas
-function addToHistory(result, score, time) {
-    history.push({ result, score, time });
-    updateHistory();
-}
-
-function updateHistory() {
-    const historyContainer = document.getElementById('history-container');
-    const historyList = document.getElementById('history-list');
-    historyList.innerHTML = '';
-    history.forEach((entry, index) => {
-        const listItem = document.createElement('li');
-        listItem.textContent = `Partida ${index + 1}: ${entry.result} - Puntuación: ${entry.score} - Tiempo: ${entry.time}`;
-        historyList.appendChild(listItem);
-    });
-    historyContainer.style.display = 'block';
-}
 
 // Sistema de puntuación
 function calculateScore() {

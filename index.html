@@ -63,18 +63,7 @@
         <div id="score" style="display: none;">Puntuación: <span id="current-score">0</span></div>
     </div>
 
-    <!-- Contenedor del historial de partidas -->
-    <div id="history-container" style="display: none;">
-        <h2>Historial de Partidas</h2>
-        <ul id="history-list"></ul>
-        <button onclick="backToMainMenu()">Atrás</button>
-    </div>
 
-    <!-- Contenedor de High Scores -->
-    <div id="highscore-container" style="display: none;">
-        <h2>High Scores</h2>
-        <ul id="highscore-list"></ul>
-    </div>
 
     <!-- Ventana Modal para Empate Inminente -->
     <div id="draw-modal" class="modal" style="display: none;">
@@ -105,71 +94,47 @@
 
 <!-- Modal de Instrucciones -->
 <div id="instructions-modal" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="hideInstructions()">&times;</span>
+    <div class="modal-content"><span class="close" onclick="hideInstructions()">&times;</span> 
         <h2>Instrucciones de Juego: Multiuniversal Gato</h2>
-        <p>¡Prepárate para disfrutar de una versión ampliada y emocionante del clásico Tres en Raya!</p>
-        <br/> 
-        <!-- Contenido de las instrucciones -->
         <h3>Objetivo del Juego</h3>
-        <p>Ser el primero en ganar tres mini-tableros en línea (horizontal, vertical o diagonal) en el tablero principal.</p>
-        <br/> 
-        <h3>Cómo Funciona el Juego</h3>
-
-        <h3>Tablero Principal y Mini-Tableros</h3>
-        <p>El juego se desarrolla en un <strong>tablero principal</strong> compuesto por 9 <strong>mini-tableros</strong> organizados en una cuadrícula de 3x3.</p>
-        <p>
-            <img src="images/instrucciones1.webp" alt="Representación del tablero principal con 9 mini-tableros vacíos">
-        </p>
-        <br/> 
-        <h3>Turnos y Jugadores</h3>
-        <p>Dos jugadores participan en el juego: 'X' y 'O'. Los jugadores se turnan para colocar su símbolo en las casillas.</p>
-        <br/> 
-        <h3>Primer Movimiento</h3>
-        <p>El jugador 'X' comienza el juego y puede colocar su símbolo en <strong>cualquier casilla de cualquier mini-tablero</strong>.</p>
-        <br/> 
+        <p>Gana tres mini-tableros en línea (horizontal, vertical o diagonal) en el tablero principal.</p>
+        
+        <h3>Cómo Jugar</h3>
+        <p>El juego se desarrolla en un tablero principal con 9 mini-tableros (3x3).</p>
+        <p>Dos jugadores, 'X' y 'O', se turnan para colocar sus símbolos.</p>
+        <p>'X' comienza jugando en cualquier casilla de cualquier mini-tablero.</p>
+        
         <h3>Regla de Envío</h3>
-        <p>La <strong>posición</strong> en la que colocas tu símbolo en el mini-tablero actual <strong>determina el mini-tablero</strong> en el que el siguiente jugador debe jugar.</p>
-        <p>Por ejemplo, si colocas tu símbolo en la posición superior izquierda (casilla 1) de un mini-tablero, el próximo jugador debe jugar en el mini-tablero superior izquierdo del tablero principal.</p>
+        <p>La casilla donde juegas determina el mini-tablero donde el siguiente jugador debe jugar.</p>
+        <p>Ejemplo: si juegas en la esquina superior izquierda, tu oponente debe jugar en el mini-tablero superior izquierdo.</p>
         <p>
-            <img src="images/instrucciones2.webp" alt="Flecha mostrando cómo una jugada en una casilla específica dirige al siguiente mini-tablero">
+            <img src="images/instrucciones2.webp" alt="Ejemplo de regla de envío">
         </p>
-        <br/> 
-        <h3>Mini-Tableros Ganados o Llenos</h3>
-        <p>Si el mini-tablero al que te envían ya está ganado o lleno <h4>PUEDES ELEGIR CUALQUIER <br/> MINI-TABLERO DISPONIBLE</h4> para tu siguiente movimiento.</p>
-        <img src="images/instrucciones5.webp" alt="Todos los mini-tableros disponibles para jugar luego de un movimiento">
-        <br/> 
+        
+        <h3>Mini-Tableros Ocupados</h3>
+        <p>Si el mini-tablero al que te envían está lleno o ganado, puedes jugar en cualquier mini-tablero disponible.</p>
+        <p>
+            <img src="images/instrucciones5.webp" alt="Mini-tableros disponibles para jugar">
+        </p>
+        
         <h3>Ganar un Mini-Tablero</h3>
-        <p>Al obtener tres de tus símbolos en línea (horizontal, vertical o diagonal) en un mini-tablero, lo ganas.</p>
-        <p>El mini-tablero se marcará con tu símbolo grande para indicar tu victoria.</p>
+        <p>Forma tres de tus símbolos en línea en un mini-tablero para ganarlo.</p>
         <p>
-            <img src="images/instrucciones3.webp" alt="Mini-tablero con una línea de tres 'X' y el símbolo 'X' grande sobre él">
+            <img src="images/instrucciones3.webp" alt="Mini-tablero ganado">
         </p>
-        <br/> 
+        
         <h3>Ganar el Juego</h3>
-        <p>El primer jugador en ganar tres mini-tableros en línea en el tablero principal es el ganador del juego.</p>
+        <p>Gana tres mini-tableros en línea en el tablero principal para vencer.</p>
         <p>
-            <img src="images/instrucciones4.webp" alt="Tablero principal con tres mini-tableros ganados en línea y resaltados">
+            <img src="images/instrucciones4.webp" alt="Victoria en el juego">
         </p>
-        <br/> <br/> 
-        <h3>Controles del Juego</h3>
-        <p><strong>Seleccionar Casilla</strong>: Haz clic en la casilla donde deseas colocar tu símbolo.</p>
-        <p><strong>Indicaciones Visuales</strong>: El juego resaltará el mini-tablero en el que debes jugar.</p>
-        <p><strong>Mensaje de Turno</strong>: Observa el mensaje en pantalla para saber de quién es el turno y en qué mini-tablero jugar.</p>
-
-        <h3>Consejos Estratégicos</h3>
-        <p><strong>Planifica Tus Movimientos</strong>: Piensa en cómo tu jugada afectará las opciones de tu oponente.</p>
-        <p><strong>Controla el Centro</strong>: Los mini-tableros centrales pueden ser clave para ganar.</p>
-        <p><strong>Bloquea a Tu Oponente</strong>: Evita que tu oponente gane tres mini-tableros en línea.</p>
-
-        <h3>Modalidades de Juego</h3>
-        <p><strong>Jugador vs CPU</strong>: Desafía a la inteligencia artificial en diferentes niveles de dificultad.</p>
-        <p><strong>Jugador vs Jugador</strong>: Juega contra un amigo en el mismo dispositivo.</p>
-
-        <h3>¡Diviértete y Buena Suerte!</h3>
+        
+        <h3>Controles</h3>
+        <p>Haz clic en la casilla donde deseas jugar. El juego te mostrará dónde debes jugar.</p>
+        
+        <h3>¡Diviértete!</h3>
     </div>
-</div>
-
+    
 <!-- Modal de Pausa -->
 <div id="pause-modal" class="modal" style="display: none;">
     <div class="modal-content">
