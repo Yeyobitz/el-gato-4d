@@ -796,6 +796,33 @@ body, html {
     cursor: pointer;
 }
 
+@keyframes glitch {
+    0% {
+        transform: translate(0);
+        text-shadow: none;
+    }
+    20% {
+        transform: translate(-2px, 2px);
+        text-shadow: 2px -2px #ff0000, -2px 2px #00ff00;
+    }
+    40% {
+        transform: translate(2px, -2px);
+        text-shadow: -2px 2px #0000ff, 2px -2px #ff00ff;
+    }
+    60% {
+        transform: translate(-2px, -2px);
+        text-shadow: 2px 2px #ffff00, -2px -2px #00ffff;
+    }
+    80% {
+        transform: translate(2px, 2px);
+        text-shadow: -2px -2px #ff0000, 2px 2px #00ff00;
+    }
+    100% {
+        transform: translate(0);
+        text-shadow: none;
+    }
+}
+
 a {
     color: #fff;
     text-decoration: none;
@@ -803,7 +830,5 @@ a {
 }
 
 a:hover {
-    color: #ccc;
-    text-decoration: underline;
-    text-decoration-color: #ccc;
+    animation: glitch 0.3s infinite;
 }
