@@ -30,11 +30,12 @@ body, html {
 
 /* Contenedor principal */
 #main-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 100vh; /* Añade esta línea */
 }
 
 /* Menú principal y de dificultad */
@@ -99,30 +100,43 @@ body, html {
 
 /* Contenedor del juego */
 #game-container {
-    margin: 20px auto;
-    animation: fadeIn 1s;
-}
-
-#game-content {
+    width: 90vmin;
+    height: 90vmin;
+    max-width: 90vw;
+    max-height: 90vh;
     display: flex;
     flex-direction: column;
+    justify-content: center;
     align-items: center;
 }
 
+
+#game-content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+
 #board {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 1;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 5px;
-    max-width: 80vmin; /* Asegura que el tablero sea más pequeño que la pantalla */
-    max-height: 80vmin;
-    margin: 0 auto;
+    column-gap: 10px;
 }
 
 .mini-board {
-    width: calc(90vmin / 3 - 10px);
-    height: calc(90vmin / 3 - 10px);
+    width: 100%;
+    aspect-ratio: 1;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
+    gap: 2px ;
     background-color: #222;
     position: relative;
     transition: transform 0.3s;
@@ -203,11 +217,19 @@ body, html {
     border-bottom: 1px solid #fff;
 }
 
+.cell span {
+    font-size: min(3vmin, 24px);
+}
+
+.mini-board span {
+    font-size: min(6vmin, 48px);
+}
+
+
 /* Estilos para los símbolos 'X' y 'O' */
 .cell span,
 .mini-board span {
     font-family: 'Press Start 2P', cursive;
-    font-size: 2em;
     position: absolute;
     top: 50%;
     left: 50%;
@@ -244,15 +266,15 @@ body, html {
 /* Mensaje del juego */
 #message {
     position: fixed;
-    top: 5px;
+    bottom: 1px;
     left: 50%;
     transform: translateX(-50%);
     font-size: 18px;
     color: #ccc;
     text-align: center;
     z-index: 1000;
-    background-color: rgba(0, 0, 0, 0.8);
-    padding: 10px 20px;
+    background-color: rgba(0, 0, 0, 0.420);
+    padding: 5px 20px;
     border-radius: 5px;
     width: auto;
 }
@@ -483,7 +505,7 @@ body, html {
 .volume-control input[type="range"]::-moz-range-thumb {
     width: 20px;
     height: 20px;
-    background: #fff;
+    background: #b33d3d;
     cursor: pointer;
     border-radius: 50%;
 }
@@ -502,11 +524,18 @@ body, html {
     }
 
     .cell span {
-        font-size: 1.5em;
+        font-size: 0.8em;
     }
 
     #game-info button {
         width: 80%;
+    }
+}
+
+@media (max-aspect-ratio: 1/1) {
+    #game-container {
+        width: 90vw;
+        height: 90vw;
     }
 }
 
