@@ -30,17 +30,18 @@ let audio = new Audio();
 let isPlaying = false;
 
 window.onload = function() {
-    // Variables relacionadas con el DOM
+    // Main menu music setup
     mainMenuBGM = document.getElementById('bgm-main-menu');
-    mainMenuBGM.src = 'music/main_menu.mp3'; // Asegúrate de tener este archivo
+    mainMenuBGM.src = 'music/main_menu.mp3';
+    mainMenuBGM.loop = true;  // Main menu music should loop
 
-    gameBGM = document.getElementById('bgm-game');
-    gameBGM.addEventListener('ended', function() {
+    // Game music setup
+    audio = new Audio();
+    audio.addEventListener('ended', function() {
         nextSong();
     });
 
-
-    // Inicia la música del menú principal
+    // Start with main menu music
     playMainMenuBGM();
 };
 
@@ -108,7 +109,6 @@ function startGame(mode, selectedDifficulty) {
     document.getElementById('game-container').style.display = 'block';
     playClickSound();
     stopMainMenuBGM();
-    playGameBGM();
     initializeRandomSong(); // Start a random song when the game begins
     initGame();
 }
@@ -138,10 +138,10 @@ function backToMainMenu() {
     document.getElementById('pause-modal').style.display = 'none';
     clearInterval(timerInterval);
     playClickSound();
-    stopAudio();
-    stopGameBGM();
-    playMainMenuBGM();
+    stopAudio();  // Stop game music
+    playMainMenuBGM();  // Start menu music
 }
+
 function exitGame() {
     // No se puede cerrar la ventana en navegadores por seguridad
     backToMainMenu();
@@ -665,12 +665,6 @@ function stopMainMenuBGM() {
     mainMenuBGM.currentTime = 0;
 }
 
-function playGameBGM() {
-    if (bgmEnabled) {
-        gameBGM.src = 'music/main_game.mp3';
-        gameBGM.play();
-    }
-}
 
 function stopGameBGM() {
     gameBGM.pause();
