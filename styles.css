@@ -1,32 +1,47 @@
-/* Estilos generales */
-body, html {
-    font-family: 'Press start 2p', sans-serif;
-    background-color: #000; /* Fondo negro */
-    color: #fff;
-    text-align: center;
+/* ==================== ESTILOS GENERALES ==================== */
+
+/* Reseteo y configuración básica */
+* {
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    font-family: 'Press Start 2P', sans-serif;
+    background-color: #000;
+    color: #fff;
+    text-align: center;
     height: 100%;
     overflow-x: hidden;
-    /* Ocultamos el contenido al inicio para el fade-in */
     opacity: 0;
     animation: bodyFadeIn 1s forwards;
-    animation-delay: 0s; /* Inicia de inmediato */
 }
 
 @keyframes bodyFadeIn {
     to { opacity: 1; }
 }
 
-/* Posicionamiento del temporizador */
-#timer {
-    position: fixed;
-    top: 10px;
-    right: 20px;
-    font-size: 14px;
-    color: #ccc;
-    z-index: 1000;
+/* Enlaces */
+a {
+    color: #fff;
+    text-decoration: none;
+    transition: color 0.3s;
 }
+
+a:hover {
+    animation: glitch 0.3s infinite;
+}
+
+@keyframes glitch {
+    0%, 100% { transform: translate(0); text-shadow: none; }
+    20% { transform: translate(-2px, 2px); text-shadow: 2px -2px #ff0000, -2px 2px #00ff00; }
+    40% { transform: translate(2px, -2px); text-shadow: -2px 2px #0000ff, 2px -2px #ff00ff; }
+    60% { transform: translate(-2px, -2px); text-shadow: 2px 2px #ffff00, -2px -2px #00ffff; }
+    80% { transform: translate(2px, 2px); text-shadow: -2px -2px #ff0000, 2px 2px #00ff00; }
+}
+
+/* ==================== CONTENEDORES PRINCIPALES ==================== */
 
 /* Contenedor principal */
 #main-container {
@@ -38,26 +53,25 @@ body, html {
     align-items: center;
 }
 
-/* Menú principal y de dificultad */
+/* Menús */
 .menu {
     margin-top: 10px;
     animation: fadeIn 1s;
 }
 
 .logo-container {
-    margin-top: 30px;
-    margin-bottom: 30px;
+    margin: 30px 0;
 }
 
 .logo-container h1 {
     font-size: 5vw;
     color: #f4f4f4;
     text-shadow: 2px 2px 0px #000;
-    transition: transform 0.1s;
+    transition: transform 0.3s;
 }
+
 .logo-container h1:hover {
     transform: scale(1.05);
-    transition: transform 0.3s;
     color: #fff;
 }
 
@@ -65,12 +79,17 @@ body, html {
     font-size: 1.5vw;
     margin-bottom: 20px;
     color: #f4f4f4;
-    transition: transform 0.1s;
+    transition: transform 0.3s;
 }
 
 .menu h2:hover {
     transform: scale(1.05);
-    transition: transform 0.3s;
+}
+
+.menu-options {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .menu button {
@@ -91,14 +110,19 @@ body, html {
     transform: scale(1.05);
 }
 
-.menu-options {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+/* ==================== TEMPORIZADOR ==================== */
+
+#timer {
+    position: fixed;
+    top: 10px;
+    right: 20px;
+    font-size: 14px;
+    color: #ccc;
+    z-index: 1000;
 }
 
+/* ==================== CONTENEDOR DEL JUEGO ==================== */
 
-/* Contenedor del juego */
 #game-container {
     width: 80vmin;
     height: 80vmin;
@@ -110,7 +134,6 @@ body, html {
     align-items: center;
 }
 
-
 #game-content {
     width: 100%;
     height: 100%;
@@ -120,6 +143,7 @@ body, html {
     justify-content: center;
 }
 
+/* ==================== TABLERO PRINCIPAL Y MINI-TABLERO ==================== */
 
 #board {
     width: 100%;
@@ -127,8 +151,7 @@ body, html {
     aspect-ratio: 1;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 5px;
-    column-gap: 10px;
+    gap: 10px;
 }
 
 .mini-board {
@@ -136,7 +159,7 @@ body, html {
     aspect-ratio: 1;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 2px ;
+    gap: 5px;
     background-color: #222;
     position: relative;
     transition: transform 0.3s;
@@ -145,7 +168,7 @@ body, html {
 
 .mini-board.active {
     animation: pulse 2s infinite ease-in-out;
-    outline: 1px  #ababab;
+    outline: 1px dashed #ababab;
 }
 
 @keyframes pulse {
@@ -162,14 +185,14 @@ body, html {
 }
 
 .mini-board.winner-X {
-    background-color: #005d0690;
+    background-color: rgba(0, 93, 6, 0.56);
 }
 
 .mini-board.winner-O {
-    background-color: #4e000090;
+    background-color: rgba(78, 0, 0, 0.56);
 }
 
-/* Bordes para crear el '#' gigante */
+/* Bordes para el tablero principal */
 .mini-board:nth-child(2),
 .mini-board:nth-child(5),
 .mini-board:nth-child(8) {
@@ -184,7 +207,8 @@ body, html {
     border-bottom: 2px solid #fff;
 }
 
-/* Estilos de las celdas */
+/* ==================== CELDAS ==================== */
+
 .cell {
     position: relative;
     background-color: #111;
@@ -202,7 +226,7 @@ body, html {
     background-color: #222;
 }
 
-/* Bordes para crear el '#' en celdas */
+/* Bordes para las celdas */
 .cell:nth-child(2),
 .cell:nth-child(5),
 .cell:nth-child(8) {
@@ -217,16 +241,8 @@ body, html {
     border-bottom: 1px solid #fff;
 }
 
-.cell span {
-    font-size: min(3vmin, 24px);
-}
+/* ==================== SÍMBOLOS Y ANIMACIONES ==================== */
 
-.mini-board span {
-    font-size: min(6vmin, 48px);
-}
-
-
-/* Estilos para los símbolos 'X' y 'O' */
 .cell span,
 .mini-board span {
     font-family: 'Press Start 2P', cursive;
@@ -239,13 +255,13 @@ body, html {
     user-select: none;
 }
 
-.mini-board span {
-    font-size: 2em;
+.cell span {
+    font-size: min(3vmin, 24px);
+    animation: subtleGlow 2s infinite alternate;
 }
 
-/* Animaciones para los símbolos */
-.cell span {
-    animation: subtleGlow 2s infinite alternate;
+.mini-board span {
+    font-size: min(6vmin, 48px);
 }
 
 .cell span.new-symbol {
@@ -263,7 +279,8 @@ body, html {
     }
 }
 
-/* Mensaje del juego */
+/* ==================== MENSAJE DEL JUEGO ==================== */
+
 #message {
     position: fixed;
     bottom: 1px;
@@ -273,123 +290,13 @@ body, html {
     color: #ccc;
     text-align: center;
     z-index: 1000;
-    background-color: rgba(0, 0, 0, 0.420);
+    background-color: rgba(0, 0, 0, 0.42);
     padding: 5px 20px;
     border-radius: 5px;
-    width: auto;
 }
 
+/* ==================== MODALES ==================== */
 
-/* Información y botones del juego */
-#game-info {
-    margin-top: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-#game-info button {
-    width: 200px;
-    margin: 10px 0;
-    font-size: 16px;
-    padding: 10px;
-    background-color: #222;
-    color: #fff;
-    border: 2px solid #fff;
-    border-radius: 5px;
-    transition: background-color 0.3s, transform 0.2s;
-}
-
-#game-info button:hover {
-    background-color: #444;
-    transform: scale(1.05);
-}
-
-#score {
-    font-size: 18px;
-    margin-bottom: 10px;
-    color: #ccc;
-}
-
-/* Ventana Modal */
-.modal {
-    display: none; /* Oculto por defecto */
-    position: fixed;
-    z-index: 1000; /* Asegura que esté por encima de otros elementos */
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden; /* Habilita el scroll si es necesario */
-    background-color: rgba(0, 0, 0, 0.8); /* Fondo semi-transparente */
-}
-
-.modal-content {
-    position: relative;
-    background-color: #fefefe;
-    margin: 5% auto; /* Centrar vertical y horizontalmente */
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%; /* Ancho del contenido */
-    max-height: 70%; /* Altura máxima */
-    overflow-y: auto; /* Scroll vertical si el contenido es muy alto */
-    border-radius: 10px;
-    animation: fadeIn 0.5s;
-}
-.close {
-    color: #b80000;
-    position: fixed; 
-    top: 20px; 
-    right: 20px; 
-    font-size: 28px; 
-    z-index: 1001;
-    font-weight: bold; 
-    cursor: pointer;
-}
-.close:hover,
-.close:focus {
-    text-decoration: none;
-    cursor: pointer;
-    color: #ff0000;
-        transform: rotate(90deg) scale(1.2);
-        transition: all 0.3s ease;
-    
-}
-#instructions-modal img {
-    display: block;
-    margin: 20px auto; /* Centra la imagen y añade un margen superior e inferior */
-    max-width: 70%; /* La imagen no excederá el ancho del contenedor */
-    height: auto; /* Mantiene la proporción de la imagen */
-}
-
-.modal-content h2 {
-    font-size: 24px;
-    color: #fff;
-}
-
-.modal-content p {
-    font-size: 16px;
-    color: #ccc;
-}
-
-.modal-content button {
-    font-size: 16px;
-    padding: 10px 20px;
-    margin: 10px;
-    cursor: pointer;
-    background-color: #222;
-    color: #fff;
-    border: 2px solid #fff;
-    border-radius: 5px;
-    transition: background-color 0.3s, transform 0.2s;
-}
-
-.modal-content button:hover {
-    background-color: #444;
-    transform: scale(1.05);
-}
-
-/* Estilos para el modal de fin de juego */
 .modal {
     display: none;
     position: fixed;
@@ -398,17 +305,21 @@ body, html {
     top: 0;
     width: 100%;
     height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.9);
+    overflow: hidden;
+    background-color: rgba(0, 0, 0, 0.8);
 }
 
 .modal-content {
+    position: relative;
     background-color: #111;
+    margin: 5% auto;
     padding: 20px;
     border: 2px solid #fff;
     width: 80%;
     max-width: 500px;
-    border-radius: 5px;
+    max-height: 70%;
+    overflow-y: auto;
+    border-radius: 10px;
     text-align: center;
     animation: fadeIn 0.5s;
 }
@@ -424,7 +335,7 @@ body, html {
 }
 
 .modal-content button {
-    font-family: 'Press start 2p', roboto, sans-serif;
+    font-family: 'Press Start 2P', roboto, sans-serif;
     font-size: 16px;
     padding: 10px 20px;
     margin: 10px;
@@ -441,37 +352,83 @@ body, html {
     transform: scale(1.05);
 }
 
-/* Animaciones */
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+/* Botón de cierre en modales */
+.close {
+    color: #b80000;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    font-size: 28px;
+    z-index: 1001;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.3s;
 }
 
-/* Estilos específicos para el modal de pausa */
+.close:hover,
+.close:focus {
+    color: #ff0000;
+    transform: rotate(90deg) scale(1.2);
+}
+
+/* Imágenes en el modal de instrucciones */
+#instructions-modal img {
+    display: block;
+    margin: 20px auto;
+    max-width: 70%;
+    height: auto;
+}
+
+/* ==================== MODAL DE PAUSA ==================== */
+
 #pause-modal .modal-content {
     background-color: #111;
     color: #fff;
-    text-align: center;
 }
 
 #pause-modal button {
     width: 200px;
     margin: 10px 0;
-    font-size: 16px;
-    padding: 10px;
+}
+
+/* ==================== CONTROLES DE MÚSICA ==================== */
+
+#music-player {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.controls-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+#music-player button {
+    font-size: 24px;
+    padding: 12px;
     background-color: #222;
     color: #fff;
     border: 2px solid #fff;
-    border-radius: 5px;
+    border-radius: 10px;
+    width: 50px;
+    height: 50px;
     transition: background-color 0.3s, transform 0.2s;
 }
 
-#pause-modal button:hover {
+#music-player button:hover {
     background-color: #444;
-    transform: scale(1.05);
+    transform: scale(1.1);
 }
 
-/* Estilos para el control de volumen */
+#current-song-name {
+    font-size: 16px;
+    color: #ccc;
+    margin-top: 10px;
+}
+
+/* Control de volumen */
 .volume-control {
     margin-top: 20px;
     text-align: center;
@@ -492,9 +449,8 @@ body, html {
     transition: opacity 0.2s;
 }
 
-.volume-control input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
+.volume-control input[type="range"]::-webkit-slider-thumb,
+.volume-control input[type="range"]::-moz-range-thumb {
     width: 20px;
     height: 20px;
     background: #fff;
@@ -502,21 +458,112 @@ body, html {
     border-radius: 50%;
 }
 
-.volume-control input[type="range"]::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
-    background: #b33d3d;
-    cursor: pointer;
-    border-radius: 50%;
+/* ==================== MODAL DE IA PENSANDO ==================== */
+
+#ai-thinking-modal .modal-content {
+    background-color: rgba(0, 0, 0, 0.1);
+    border: none;
+    animation: none;
 }
 
+#ai-thinking-modal .modal-content h2 {
+    font-size: 24px;
+    color: #fff;
+}
 
-/* Estilos responsivos */
+#ai-thinking-modal #dots {
+    display: inline-block;
+    width: 20px;
+    text-align: left;
+}
+
+@keyframes dots {
+    0% { content: ''; }
+    33% { content: '.'; }
+    66% { content: '..'; }
+    100% { content: '...'; }
+}
+
+#ai-thinking-modal #dots::after {
+    content: '';
+    animation: dots 1s steps(3, end) infinite;
+}
+
+/* ==================== ANIMACIONES Y EFECTOS ==================== */
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes subtleGlow {
+    from { text-shadow: 1px 1px 2px #fff; }
+    to { text-shadow: 1px 1px 10px #fff; }
+}
+
+/* ==================== FONDO DE ESTRELLAS ==================== */
+
+#stars {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    z-index: -1;
+}
+
+#stars span {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px rgba(255,255,255,0.1), 0 0 0 8px rgba(255,255,255,0.1), 0 0 20px rgba(255,255,255,0.1);
+    animation: animate 3s linear infinite;
+}
+
+#stars span::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 300px;
+    height: 1px;
+    background: linear-gradient(90deg, #fff, transparent);
+}
+
+@keyframes animate {
+    0% {
+        transform: rotate(315deg) translateX(0);
+        opacity: 1;
+    }
+    70% {
+        opacity: 1;
+    }
+    100% {
+        transform: rotate(315deg) translateX(-1000px);
+        opacity: 0;
+    }
+}
+
+#stars span:nth-child(1) { top: 0; right: 0; animation-delay: 0s; animation-duration: 1s; }
+#stars span:nth-child(2) { top: 0; right: 80px; animation-delay: 0.2s; animation-duration: 3s; }
+#stars span:nth-child(3) { top: 80px; right: 0; animation-delay: 0.4s; animation-duration: 2s; }
+#stars span:nth-child(4) { top: 0; right: 180px; animation-delay: 0.6s; animation-duration: 1.5s; }
+#stars span:nth-child(5) { top: 0; right: 400px; animation-delay: 0.8s; animation-duration: 2.5s; }
+#stars span:nth-child(6) { top: 0; right: 600px; animation-delay: 1s; animation-duration: 3s; }
+#stars span:nth-child(7) { top: 300px; right: 0; animation-delay: 1.2s; animation-duration: 1.75s; }
+#stars span:nth-child(8) { top: 0; right: 700px; animation-delay: 1.4s; animation-duration: 1.25s; }
+#stars span:nth-child(9) { top: 0; right: 1000px; animation-delay: 0.75s; animation-duration: 2.25s; }
+
+/* ==================== ESTILOS RESPONSIVOS ==================== */
+
 @media (max-width: 768px) {
     .mini-board {
-        margin-top: 10px;
         width: calc(90vmin / 3 - 10px);
         height: calc(90vmin / 3 - 10px);
+        margin-top: 10px;
     }
 
     .mini-board span {
@@ -537,298 +584,4 @@ body, html {
         width: 90vw;
         height: 90vw;
     }
-}
-
-/* Estilos para los controles de BGM */
-#bgm-controls {
-    margin-top: 20px;
-    text-align: center;
-}
-
-#bgm-controls button {
-    font-family: 'Press start 2p', sans-serif;
-    font-size: 24px;
-    padding: 10px;
-    margin: 5px;
-    cursor: pointer;
-    background-color: #222;
-    color: #fff;
-    border: 2px solid #fff;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    transition: background-color 0.3s, transform 0.2s;
-}
-
-#bgm-controls button:hover {
-    background-color: #444;
-    transform: scale(1.1);
-}
-
-#current-song-name {
-    margin-top: 10px;
-    font-size: 14px;
-    color: #ccc;
-    word-break: break-all;
-}
-
-/* Estilos para el modal de IA pensando */
-#ai-thinking-modal .modal-content {
-    background-color: rgba(0, 0, 0, 0.1);
-    border: none;
-    animation: none;
-}
-
-#ai-thinking-modal .modal-content h2 {
-    font-size: 24px;
-    color: #fff;
-}
-
-#ai-thinking-modal #dots {
-    display: inline-block;
-    width: 20px;
-    text-align: left;
-}
-
-@keyframes dots {
-    0%   { content: ''; }
-    33%  { content: '.'; }
-    66%  { content: '..'; }
-    100% { content: '...'; }
-}
-
-#ai-thinking-modal #dots::after {
-    content: '';
-    animation: dots 1s steps(3, end) infinite;
-}
-
-/* Estrellas */
-
-#stars {
-    position: fixed; /* Asegura que se mantenga fijo en el fondo */
-    top: 0;
-    left: 0;
-    width: 100vw; /* Ancho completo de la ventana */
-    height: 100vh; /* Alto completo de la ventana */
-    overflow: hidden; /* Evita que el contenido se desborde */
-    z-index: -1; /* Envía el fondo detrás del contenido principal */
-}
-
-
-#stars span {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 4px;
-    height: 4px;
-    background: #fff;
-    border-radius: 50%;
-    box-shadow: 0 0 0 4px rgba(255,255,255,0.1),0 0 0 8px rgba(255,255,255,0.1),0 0 20px rgba(255,255,255,0.1);
-    animation: animate 3s linear infinite;
-}
-#stars span::before{
-    content:'';
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 300px;
-    height: 1px;
-    background: linear-gradient(90deg,#fff,transparent);
-}
-@keyframes animate
-{
-    0%
-    {
-        transform: rotate(315deg) translateX(0);
-        opacity: 1;
-    }
-    70%
-    {
-        opacity: 1;
-    }
-    100%
-    {
-        transform: rotate(315deg) translateX(-1000px);
-        opacity: 0;
-    }
-}
-#stars span:nth-child(1){
-    top: 0;
-    right: 0;
-    left: initial;
-    animation-delay: 0s;
-    animation-duration: 1s;
-}
-#stars span:nth-child(2){
-    top: 0;
-    right: 80px;
-    left: initial;
-    animation-delay: 0.2s;
-    animation-duration: 3s;
-}
-#stars span:nth-child(3){
-    top: 80px;
-    right: 0px;
-    left: initial;
-    animation-delay: 0.4s;
-    animation-duration: 2s;
-}
-#stars span:nth-child(4){
-    top: 0;
-    right: 180px;
-    left: initial;
-    animation-delay: 0.6s;
-    animation-duration: 1.5s;
-}
-#stars span:nth-child(5){
-    top: 0;
-    right: 400px;
-    left: initial;
-    animation-delay: 0.8s;
-    animation-duration: 2.5s;
-}
-#stars span:nth-child(6){
-    top: 0;
-    right: 600px;
-    left: initial;
-    animation-delay: 1s;
-    animation-duration: 3s;
-}
-#stars span:nth-child(7){
-    top: 300px;
-    right: 0px;
-    left: initial;
-    animation-delay: 1.2s;
-    animation-duration: 1.75s;
-}
-#stars span:nth-child(8){
-    top: 0px;
-    right: 700px;
-    left: initial;
-    animation-delay: 1.4s;
-    animation-duration: 1.25s;
-}
-#stars span:nth-child(9){
-    top: 0px;
-    right: 1000px;
-    left: initial;
-    animation-delay: 0.75s;
-    animation-duration: 2.25s;
-}
-#stars span:nth-child(9){
-    top: 0px;
-    right: 450px;
-    left: initial;
-    animation-delay: 2.75s;
-    animation-duration: 2.75s;
-}
-
-#music-player {
-    text-align: center;
-    margin-top: 20px;
-}
-
-.controls-container {
-    display: flex;
-    justify-content: center;
-    gap: 10px; /* Adds space between the buttons */
-    margin-top: 10px;
-}
-
-#music-player button {
-    font-size: 24px;
-    padding: 12px;
-    background-color: #222;
-    color: #fff;
-    border: 2px solid #fff;
-    border-radius: 10px;
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.3s, transform 0.2s;
-}
-
-#music-player button:hover {
-    background-color: #444;
-    transform: scale(1.1);
-}
-
-#current-song-name {
-    font-size: 16px;
-    color: #ccc;
-    margin-top: 10px;
-}
-
-#volume-slider {
-    width: 80%;
-    margin-top: 10px;
-    -webkit-appearance: none;
-    appearance: none;
-    height: 8px;
-    background: #333;
-    outline: none;
-    border-radius: 10px;
-    opacity: 0.8;
-    transition: opacity 0.2s;
-}
-
-#volume-slider:hover {
-    opacity: 1;
-}
-
-#volume-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #fff;
-    cursor: pointer;
-}
-
-#volume-slider::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #fff;
-    cursor: pointer;
-}
-
-@keyframes glitch {
-    0% {
-        transform: translate(0);
-        text-shadow: none;
-    }
-    20% {
-        transform: translate(-2px, 2px);
-        text-shadow: 2px -2px #ff0000, -2px 2px #00ff00;
-    }
-    40% {
-        transform: translate(2px, -2px);
-        text-shadow: -2px 2px #0000ff, 2px -2px #ff00ff;
-    }
-    60% {
-        transform: translate(-2px, -2px);
-        text-shadow: 2px 2px #ffff00, -2px -2px #00ffff;
-    }
-    80% {
-        transform: translate(2px, 2px);
-        text-shadow: -2px -2px #ff0000, 2px 2px #00ff00;
-    }
-    100% {
-        transform: translate(0);
-        text-shadow: none;
-    }
-}
-
-a {
-    color: #fff;
-    text-decoration: none;
-    transition: color 0.3s;
-}
-
-a:hover {
-    animation: glitch 0.3s infinite;
 }
