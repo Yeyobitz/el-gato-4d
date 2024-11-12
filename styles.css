@@ -100,8 +100,8 @@ body, html {
 
 /* Contenedor del juego */
 #game-container {
-    width: 90vmin;
-    height: 90vmin;
+    width: 80vmin;
+    height: 80vmin;
     max-width: 90vw;
     max-height: 90vh;
     display: flex;

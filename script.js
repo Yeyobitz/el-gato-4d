@@ -6,7 +6,6 @@ let mainBoard = [];
 let activeBoard = null;
 let gameActive = true;
 let history = [];
-let highScores = [];
 let moveCount = 0;
 let gameStartTime = null;
 let timerInterval = null;
@@ -19,10 +18,12 @@ let formattedTime = '00:00';
 let mainMenuBGM;
 let gameBGM;
 const songs = [
-    'music/bgm/song1.mp3',
-    'music/bgm/song2.mp3',
-    'music/bgm/song3.mp3',
-    'music/bgm/song4.mp3'
+    'music/bgm/song1.ogg',
+    'music/bgm/song2.ogg',
+    'music/bgm/song3.ogg',
+    'music/bgm/song4.ogg',
+    'music/bgm/song5.ogg',
+    'music/bgm/song6.ogg'
 ];
 
 let currentSongIndex = 0;
@@ -32,7 +33,7 @@ let isPlaying = false;
 window.onload = function() {
     // Main menu music setup
     mainMenuBGM = document.getElementById('bgm-main-menu');
-    mainMenuBGM.src = 'music/main_menu.mp3';
+    mainMenuBGM.src = 'music/main_menu.ogg';
     mainMenuBGM.loop = true;  // Main menu music should loop
 
     // Game music setup
@@ -116,8 +117,7 @@ function startGame(mode, selectedDifficulty) {
 function handleWinningGame(winner) {
     gameActive = false;
     clearInterval(timerInterval);
-    calculateScore();
-    
+    stopGameBGM();
     if (winner === 'empate') {
         playDrawSound();
         showGameOverModal('¡Es un empate!');
