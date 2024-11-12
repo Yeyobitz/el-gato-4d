@@ -1,22 +1,23 @@
-// Variables globales
+// ==================== VARIABLES GLOBALES ====================
+
+// Estado del juego
 let gameMode = '';
 let difficulty = 'medium';
 let currentPlayer = 'X';
 let mainBoard = [];
 let activeBoard = null;
 let gameActive = true;
-let history = [];
+let isGamePaused = false;
 let moveCount = 0;
 let gameStartTime = null;
 let timerInterval = null;
+
+// Configuración de audio
 let sfxEnabled = true;
 let bgmEnabled = true;
-let score = 0;
-let formattedTime = '00:00';
-
-// Variables para manejo de audio
-let mainMenuBGM;
-let gameBGM;
+let audio = new Audio();
+let isPlaying = false;
+let currentSongIndex = 0;
 const songs = [
     'music/bgm/song1.ogg',
     'music/bgm/song2.ogg',
@@ -26,178 +27,94 @@ const songs = [
     'music/bgm/song6.ogg'
 ];
 
-let currentSongIndex = 0;
-let audio = new Audio();
-let isPlaying = false;
+// Elementos de audio y música
+let mainMenuBGM;
+let placeSound;
+let winSound;
+let drawSound;
+let clickSound;
 
+// ==================== INICIALIZACIÓN ====================
+
+// Se ejecuta cuando la ventana se ha cargado completamente
 window.onload = function() {
-    // Main menu music setup
-    mainMenuBGM = document.getElementById('bgm-main-menu');
-    mainMenuBGM.src = 'music/main_menu.ogg';
-    mainMenuBGM.loop = true;  // Main menu music should loop
-
-    // Game music setup
-    audio = new Audio();
-    audio.addEventListener('ended', function() {
-        nextSong();
-    });
-
-    // Start with main menu music
+    setupAudioElements();
     playMainMenuBGM();
 };
 
-// Initialize the first random song
-function initializeRandomSong() {
-    currentSongIndex = Math.floor(Math.random() * songs.length);
-    loadSong(currentSongIndex);
+// Configura los elementos de audio
+function setupAudioElements() {
+    mainMenuBGM = document.getElementById('bgm-main-menu');
+    placeSound = document.getElementById('place-sound');
+    winSound = document.getElementById('win-sound');
+    drawSound = document.getElementById('draw-sound');
+    clickSound = document.getElementById('click-sound');
+
+    mainMenuBGM.loop = true;
+    audio.addEventListener('ended', nextSong);
 }
 
-// Load and play the selected song
-function loadSong(index) {
-    audio.src = songs[index];
-    document.getElementById('song-name').textContent = songs[index].split('/').pop(); // Display file name
-    audio.load();
-    audio.play();
-    isPlaying = true;
-}
+// ==================== FUNCIONES DE NAVEGACIÓN Y MENÚ ====================
 
-// Toggle play/pause
-function togglePlayPause() {
-    if (isPlaying) {
-        audio.pause();
-    } else {
-        audio.play();
-    }
-    isPlaying = !isPlaying;
-}
-
-// Play the next song
-function nextSong() {
-    currentSongIndex = (currentSongIndex + 1) % songs.length;
-    loadSong(currentSongIndex);
-}
-
-// Play the previous song
-function previousSong() {
-    currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
-    loadSong(currentSongIndex);
-}
-
-// Stop and reset audio when returning to main menu
-function stopAudio() {
-    audio.pause();
-    audio.currentTime = 0;
-    isPlaying = false;
-}
-
-// Funciones de navegación y menú
+// Muestra el menú de selección de dificultad
 function showDifficulty(mode) {
     gameMode = mode;
-    document.getElementById('main-menu').style.display = 'none';
-    document.getElementById('difficulty-menu').style.display = 'block';
+    toggleDisplay('main-menu', false);
+    toggleDisplay('difficulty-menu', true);
     playClickSound();
 }
 
-// Initialize music when game starts
+// Inicia el juego con el modo y dificultad seleccionados
 function startGame(mode, selectedDifficulty) {
-    isGamePaused = false;
     if (selectedDifficulty) {
         difficulty = selectedDifficulty;
     }
     gameMode = mode;
-    document.getElementById('main-menu').style.display = 'none';
-    document.getElementById('difficulty-menu').style.display = 'none';
-    document.getElementById('game-container').style.display = 'block';
+    resetGameState();
+    toggleDisplay('main-menu', false);
+    toggleDisplay('difficulty-menu', false);
+    toggleDisplay('game-container', true);
     playClickSound();
     stopMainMenuBGM();
-    initializeRandomSong(); // Start a random song when the game begins
+    initializeRandomSong();
     initGame();
 }
 
-function handleWinningGame(winner) {
-    gameActive = false;
-    clearInterval(timerInterval);
-    stopGameBGM();
-    if (winner === 'empate') {
-        playDrawSound();
-        showGameOverModal('¡Es un empate!');
-    } else {
-        playWinSound();
-        showGameOverModal(`${winner} ha ganado el juego`);
-    }
-}
-
+// Regresa al menú principal y reinicia el estado del juego
 function backToMainMenu() {
-    // Hide all menus and containers first
-    document.getElementById('game-container').style.display = 'none';
-    document.getElementById('difficulty-menu').style.display = 'none';
-    document.getElementById('draw-modal').style.display = 'none';
-    document.getElementById('game-over-modal').style.display = 'none';
-    document.getElementById('instructions-modal').style.display = 'none';
-    document.getElementById('pause-modal').style.display = 'none';
-    
-    // Then show main menu
-    document.getElementById('main-menu').style.display = 'block';
-    
-    // Reset game state
-    clearInterval(timerInterval);
-    isGamePaused = false;
-    gameActive = false;
-    
-    // Handle audio
+    hideAllModals();
+    toggleDisplay('game-container', false);
+    toggleDisplay('main-menu', true);
+    resetGameState();
     playClickSound();
     stopAudio();
-    stopGameBGM();
     playMainMenuBGM();
 }
 
-function exitGame() {
-    // No se puede cerrar la ventana en navegadores por seguridad
-    backToMainMenu();
-}
+// ==================== FUNCIONES DEL JUEGO ====================
 
-// Funciones del juego
+// Inicializa el estado del juego
 function initGame() {
     isGamePaused = false;
-    document.getElementById('game-over-modal').style.display = 'none';
-    document.getElementById('pause-modal').style.display = 'none';
-
-    
-    mainBoard = [];
-    for (let i = 0; i < 9; i++) {
-        mainBoard.push({
-            cells: Array(9).fill(''),
-            element: null,
-            winner: null
-        });
-    }
-    activeBoard = null;
     gameActive = true;
     currentPlayer = 'X';
     moveCount = 0;
+    activeBoard = null;
     gameStartTime = Date.now();
-    formattedTime = '00:00';
-    document.getElementById('time-elapsed').textContent = '00:00';
-    document.getElementById('game-over-modal').style.display = 'none';
+    mainBoard = Array(9).fill(null).map(() => ({
+        cells: Array(9).fill(''),
+        winner: null
+    }));
     startTimer();
     drawBoard();
     updateMessage(`Turno de ${currentPlayer}`);
 }
 
-function startTimer() {
-    clearInterval(timerInterval);
-    timerInterval = setInterval(() => {
-        if (!isGamePaused) {
-            const timeElapsed = Math.floor((Date.now() - gameStartTime) / 1000);
-            const minutes = Math.floor(timeElapsed / 60).toString().padStart(2, '0');
-            const seconds = (timeElapsed % 60).toString().padStart(2, '0');
-            document.getElementById('time-elapsed').textContent = `${minutes}:${seconds}`;
-        }
-    }, 1000);
-}
+// Dibuja el tablero principal y los mini-tableros
 function drawBoard() {
     const boardElement = document.getElementById('board');
     boardElement.innerHTML = '';
+
     mainBoard.forEach((miniBoard, index) => {
         const miniBoardElement = document.createElement('div');
         miniBoardElement.classList.add('mini-board');
@@ -208,51 +125,45 @@ function drawBoard() {
             miniBoardElement.classList.add(`winner-${miniBoard.winner}`);
             miniBoardElement.innerHTML = `<span>${miniBoard.winner}</span>`;
         } else {
-            miniBoard.cells.forEach((cell, cellIndex) => {
-                const cellElement = document.createElement('div');
-                cellElement.classList.add('cell');
-                if (cell !== '') {
-                    cellElement.innerHTML = `<span>${cell}</span>`;
-                    cellElement.classList.add('disabled');
-                }
-                if (gameActive && (activeBoard === index || activeBoard === null) && cell === '') {
-                    cellElement.addEventListener('click', () => handleCellClick(index, cellIndex));
-                } else {
-                    cellElement.classList.add('disabled');
-                }
-                miniBoardElement.appendChild(cellElement);
-            });
+            drawMiniBoardCells(miniBoard, miniBoardElement, index);
         }
         boardElement.appendChild(miniBoardElement);
-        miniBoard.element = miniBoardElement;
     });
 }
 
+// Dibuja las celdas de un mini-tablero
+function drawMiniBoardCells(miniBoard, miniBoardElement, boardIndex) {
+    miniBoard.cells.forEach((cell, cellIndex) => {
+        const cellElement = document.createElement('div');
+        cellElement.classList.add('cell');
+        if (cell !== '') {
+            cellElement.innerHTML = `<span>${cell}</span>`;
+            cellElement.classList.add('disabled');
+        } else if (gameActive && (activeBoard === boardIndex || activeBoard === null)) {
+            cellElement.addEventListener('click', () => handleCellClick(boardIndex, cellIndex));
+        } else {
+            cellElement.classList.add('disabled');
+        }
+        miniBoardElement.appendChild(cellElement);
+    });
+}
+
+// Maneja el evento de clic en una celda
 function handleCellClick(boardIndex, cellIndex) {
-    if (!gameActive || isGamePaused) return; // Añade isGamePaused aquí
+    if (!gameActive || isGamePaused) return;
     if (activeBoard !== null && activeBoard !== boardIndex) {
         updateMessage(`Debes jugar en el tablero ${activeBoard + 1}`);
         return;
     }
     const miniBoard = mainBoard[boardIndex];
     if (miniBoard.cells[cellIndex] !== '') return;
+
     miniBoard.cells[cellIndex] = currentPlayer;
     moveCount++;
     playPlaceSound();
-
-    const cellElement = miniBoard.element.children[cellIndex];
-    const symbolSpan = document.createElement('span');
-    symbolSpan.textContent = currentPlayer;
-    symbolSpan.classList.add('new-symbol');
-    cellElement.appendChild(symbolSpan);
-
-    // Remove the 'new-symbol' class after the animation completes
-    setTimeout(() => {
-        symbolSpan.classList.remove('new-symbol');
-    }, 500);
-
+    animateCellPlacement(miniBoard, cellIndex);
     checkMiniBoardWinner(miniBoard, boardIndex);
-    activeBoard = mainBoard[cellIndex].winner || isBoardFull(mainBoard[cellIndex].cells) ? null : cellIndex;
+    updateActiveBoard(cellIndex);
     drawBoard();
     checkGameWinner();
     if (!gameActive) return;
@@ -265,107 +176,62 @@ function handleCellClick(boardIndex, cellIndex) {
     switchPlayer();
     updateMessage(`Turno de ${currentPlayer}`);
     if (gameMode === 'cpu' && currentPlayer === 'O') {
-        showAIThinkingModal();
-        setTimeout(() => {
-            cpuMove();
-            hideAIThinkingModal();
-        }, 3000); // 3000 milisegundos = 3 segundos
+        cpuMove();
     }
 }
+
+// Cambia al siguiente jugador
 function switchPlayer() {
     currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
 }
 
+// Actualiza el mensaje de estado del juego
 function updateMessage(message) {
     document.getElementById('message').textContent = message;
 }
 
-function checkMiniBoardWinner(miniBoard, index) {
+// Verifica si hay un ganador en el mini-tablero
+function checkMiniBoardWinner(miniBoard, boardIndex) {
     const winner = calculateWinner(miniBoard.cells);
     if (winner) {
         miniBoard.winner = winner;
-        miniBoard.element.classList.add(`winner-${winner}`);
-        miniBoard.element.innerHTML = `<span>${winner}</span>`; // Centrado
     }
 }
 
+// Actualiza el tablero activo basado en el último movimiento
+function updateActiveBoard(cellIndex) {
+    const nextBoard = mainBoard[cellIndex];
+    activeBoard = nextBoard.winner || isBoardFull(nextBoard.cells) ? null : cellIndex;
+}
+
+// Verifica si hay un ganador en el juego principal
 function checkGameWinner() {
     const mainBoardState = mainBoard.map(board => board.winner || '');
     const winner = calculateWinner(mainBoardState);
-    
+
     if (winner) {
-        handleWinningGame(winner);
-    } else if (isBoardFull(mainBoardState)) {
-        const countX = mainBoardState.filter(cell => cell === 'X').length;
-        const countO = mainBoardState.filter(cell => cell === 'O').length;
-        
-        let finalWinner;
-        if (countX > countO) {
-            finalWinner = 'X';
-        } else if (countO > countX) {
-            finalWinner = 'O';
-        } else {
-            finalWinner = 'empate';
-        }
-        
-        handleWinningGame(finalWinner);
+        handleGameOver(`${winner} ha ganado el juego`);
+    } else if (mainBoardState.every(cell => cell !== '')) {
+        handleGameOver('¡Es un empate!');
     }
 }
 
-function handleWinningGame(winner) {
+// Maneja el final del juego
+function handleGameOver(message) {
     gameActive = false;
     clearInterval(timerInterval);
-    
-    if (winner === 'empate') {
-        playDrawSound();
-        showGameOverModal('¡Es un empate!');
-    } else {
-        playWinSound();
-        showGameOverModal(`${winner} ha ganado el juego`);
-    }
+    playWinSound();
+    showGameOverModal(message);
 }
 
-
-function isBoardFull(board) {
-    return board.every(cell => cell !== '');
-}
-
-function isDrawImminent() {
-    // Comprueba si no hay posibilidades de ganar para ninguno
-    const mainBoardState = mainBoard.map(board => board.winner || '');
-    const availableBoards = mainBoard.filter(board => !board.winner && !isBoardFull(board.cells));
-
-    if (availableBoards.length === 0 && !calculateWinner(mainBoardState)) {
-        return true;
-    }
-    return false;
-}
-
-function showDrawModal() {
-    const modal = document.getElementById('draw-modal');
-    modal.style.display = 'block';
-}
-
-function showGameOverModal(message) {
-    const modal = document.getElementById('game-over-modal');
-    const messageElement = document.getElementById('game-over-message');
-    messageElement.textContent = message;
-    modal.style.display = 'block';
-}
-
-function retryGame() {
-    document.getElementById('draw-modal').style.display = 'none';
-    resetGame();
-}
-
+// Calcula si hay un ganador en un conjunto de celdas
 function calculateWinner(cells) {
     const lines = [
         [0,1,2], [3,4,5], [6,7,8], // Filas
         [0,3,6], [1,4,7], [2,5,8], // Columnas
         [0,4,8], [2,4,6]           // Diagonales
     ];
-    for (let line of lines) {
-        const [a,b,c] = line;
+    for (let [a, b, c] of lines) {
         if (cells[a] && cells[a] === cells[b] && cells[a] === cells[c]) {
             return cells[a];
         }
@@ -373,43 +239,61 @@ function calculateWinner(cells) {
     return null;
 }
 
+// Verifica si un tablero está lleno
+function isBoardFull(cells) {
+    return cells.every(cell => cell !== '');
+}
+
+// Verifica si el empate es inminente
+function isDrawImminent() {
+    const mainBoardState = mainBoard.map(board => board.winner || '');
+    const availableBoards = mainBoard.filter(board => !board.winner && !isBoardFull(board.cells));
+    return availableBoards.length === 0 && !calculateWinner(mainBoardState);
+}
+
+// Reinicia el juego
 function resetGame() {
     clearInterval(timerInterval);
     initGame();
     playClickSound();
 }
 
-// Función principal de la IA mejorada
+// ==================== FUNCIONES DE IA ====================
+
+// Realiza el movimiento de la IA
 function cpuMove() {
-    const gameState = {
-        mainBoard: mainBoard.map(board => ({
-            cells: board.cells.slice(),
-            winner: board.winner,
-        })),
-        activeBoard: activeBoard,
-        currentPlayer: currentPlayer,
-    };
-    const isMaximizingPlayer = (currentPlayer === 'O');
-    let depth;
-    switch (difficulty) {
-        case 'easy':
-            depth = 1;
-            break;
-        case 'medium':
-            depth = 2;
-            break;
-        case 'hard':
-            depth = 3;
-            break;
-    }
     showAIThinkingModal();
     setTimeout(() => {
+        const gameState = {
+            mainBoard: mainBoard.map(board => ({
+                cells: board.cells.slice(),
+                winner: board.winner,
+            })),
+            activeBoard: activeBoard,
+            currentPlayer: currentPlayer,
+        };
+        const isMaximizingPlayer = (currentPlayer === 'O');
+        const depth = getDepthByDifficulty();
         const result = minimaxGame(gameState, depth, -Infinity, Infinity, isMaximizingPlayer);
         if (result.move) {
             handleCellClick(result.move.boardIndex, result.move.cellIndex);
         }
         hideAIThinkingModal();
-    }, 500); // Añade un pequeño retraso para simular el pensamiento de la IA
+    }, 500);
+}
+
+// Obtiene la profundidad de búsqueda basada en la dificultad
+function getDepthByDifficulty() {
+    switch (difficulty) {
+        case 'easy':
+            return 1;
+        case 'medium':
+            return 2;
+        case 'hard':
+            return 3;
+        default:
+            return 2;
+    }
 }
 
 // Implementación del algoritmo Minimax con poda alfa-beta
@@ -418,9 +302,10 @@ function minimaxGame(gameState, depth, alpha, beta, isMaximizingPlayer) {
         return { score: evaluateGameState(gameState), move: null };
     }
     const possibleMoves = generatePossibleMoves(gameState);
+    let bestMove = null;
+
     if (isMaximizingPlayer) {
         let maxEval = -Infinity;
-        let bestMove = null;
         for (const move of possibleMoves) {
             const newGameState = applyMove(gameState, move);
             const result = minimaxGame(newGameState, depth - 1, alpha, beta, false);
@@ -429,14 +314,11 @@ function minimaxGame(gameState, depth, alpha, beta, isMaximizingPlayer) {
                 bestMove = move;
             }
             alpha = Math.max(alpha, maxEval);
-            if (beta <= alpha) {
-                break;
-            }
+            if (beta <= alpha) break;
         }
         return { score: maxEval, move: bestMove };
     } else {
         let minEval = Infinity;
-        let bestMove = null;
         for (const move of possibleMoves) {
             const newGameState = applyMove(gameState, move);
             const result = minimaxGame(newGameState, depth - 1, alpha, beta, true);
@@ -445,57 +327,43 @@ function minimaxGame(gameState, depth, alpha, beta, isMaximizingPlayer) {
                 bestMove = move;
             }
             beta = Math.min(beta, minEval);
-            if (beta <= alpha) {
-                break;
-            }
+            if (beta <= alpha) break;
         }
         return { score: minEval, move: bestMove };
     }
 }
 
-
-// Generación de movimientos posibles
+// Genera todos los movimientos posibles en el estado actual del juego
 function generatePossibleMoves(gameState) {
     let moves = [];
     if (gameState.activeBoard !== null) {
-        const boardIndex = gameState.activeBoard;
-        const board = gameState.mainBoard[boardIndex];
-        if (!board.winner && !isBoardFull(board.cells)) {
-            for (let cellIndex = 0; cellIndex < 9; cellIndex++) {
-                if (board.cells[cellIndex] === '') {
-                    moves.push({ boardIndex, cellIndex });
-                }
-            }
-            return moves;
-        } else {
-            gameState.activeBoard = null;
-        }
+        moves = getMovesForBoard(gameState, gameState.activeBoard);
+        if (moves.length > 0) return moves;
+        gameState.activeBoard = null;
     }
     for (let boardIndex = 0; boardIndex < 9; boardIndex++) {
-        const board = gameState.mainBoard[boardIndex];
-        if (!board.winner && !isBoardFull(board.cells)) {
-            for (let cellIndex = 0; cellIndex < 9; cellIndex++) {
-                if (board.cells[cellIndex] === '') {
-                    moves.push({ boardIndex, cellIndex });
-                }
+        moves = moves.concat(getMovesForBoard(gameState, boardIndex));
+    }
+    return moves;
+}
+
+// Obtiene los movimientos posibles para un mini-tablero específico
+function getMovesForBoard(gameState, boardIndex) {
+    const moves = [];
+    const board = gameState.mainBoard[boardIndex];
+    if (!board.winner && !isBoardFull(board.cells)) {
+        for (let cellIndex = 0; cellIndex < 9; cellIndex++) {
+            if (board.cells[cellIndex] === '') {
+                moves.push({ boardIndex, cellIndex });
             }
         }
     }
     return moves;
 }
 
-
-
-// Aplicación de un movimiento al estado del juego
+// Aplica un movimiento y devuelve un nuevo estado del juego
 function applyMove(gameState, move) {
-    const newGameState = {
-        mainBoard: gameState.mainBoard.map(board => ({
-            cells: board.cells.slice(),
-            winner: board.winner,
-        })),
-        activeBoard: gameState.activeBoard,
-        currentPlayer: gameState.currentPlayer,
-    };
+    const newGameState = JSON.parse(JSON.stringify(gameState)); // Clona el estado
     const { boardIndex, cellIndex } = move;
     const board = newGameState.mainBoard[boardIndex];
     board.cells[cellIndex] = newGameState.currentPlayer;
@@ -503,27 +371,19 @@ function applyMove(gameState, move) {
     if (winner) {
         board.winner = winner;
     }
-    const nextActiveBoard = newGameState.mainBoard[cellIndex];
-    if (nextActiveBoard.winner || isBoardFull(nextActiveBoard.cells)) {
-        newGameState.activeBoard = null;
-    } else {
-        newGameState.activeBoard = cellIndex;
-    }
+    const nextBoard = newGameState.mainBoard[cellIndex];
+    newGameState.activeBoard = nextBoard.winner || isBoardFull(nextBoard.cells) ? null : cellIndex;
     newGameState.currentPlayer = newGameState.currentPlayer === 'X' ? 'O' : 'X';
     return newGameState;
 }
 
-
-// Verificación del fin del juego
+// Verifica si el juego ha terminado
 function isGameOver(gameState) {
     const mainBoardState = gameState.mainBoard.map(board => board.winner || '');
-    const winner = calculateWinner(mainBoardState);
-    if (winner) return true;
-    if (mainBoardState.every(cell => cell !== '')) return true;
-    return false;
+    return calculateWinner(mainBoardState) || mainBoardState.every(cell => cell !== '');
 }
 
-// Evaluación del estado del juego
+// Evalúa el estado del juego para la IA
 function evaluateGameState(gameState) {
     const mainBoardState = gameState.mainBoard.map(board => board.winner || '');
     const winner = calculateWinner(mainBoardState);
@@ -543,63 +403,40 @@ function evaluateGameState(gameState) {
                 score += evaluateMiniBoard(board.cells);
             }
         }
-        score += evaluateMainBoard(gameState);
+        score += evaluateMainBoard(mainBoardState);
         return score;
     }
 }
 
-// Evaluación de los mini-tableros
+// Evalúa un mini-tablero
 function evaluateMiniBoard(cells) {
     const lines = [
-        [0,1,2], [3,4,5], [6,7,8], // Filas
-        [0,3,6], [1,4,7], [2,5,8], // Columnas
-        [0,4,8], [2,4,6]           // Diagonales
+        [0,1,2], [3,4,5], [6,7,8],
+        [0,3,6], [1,4,7], [2,5,8],
+        [0,4,8], [2,4,6]
     ];
     let score = 0;
-    for (let line of lines) {
-        let [a, b, c] = line;
-        let lineValues = [cells[a], cells[b], cells[c]];
-        score += evaluateLine(lineValues);
+    for (let [a, b, c] of lines) {
+        score += evaluateLine([cells[a], cells[b], cells[c]]);
     }
     return score;
 }
 
-// Evaluación del tablero principal
-function evaluateMainBoard(gameState) {
-    const mainBoardState = gameState.mainBoard.map(board => board.winner || '');
+// Evalúa el tablero principal
+function evaluateMainBoard(mainBoardState) {
     const lines = [
-        [0,1,2], [3,4,5], [6,7,8], // Filas
-        [0,3,6], [1,4,7], [2,5,8], // Columnas
-        [0,4,8], [2,4,6]           // Diagonales
+        [0,1,2], [3,4,5], [6,7,8],
+        [0,3,6], [1,4,7], [2,5,8],
+        [0,4,8], [2,4,6]
     ];
     let score = 0;
-    for (let line of lines) {
-        let [a, b, c] = line;
-        let lineValues = [mainBoardState[a], mainBoardState[b], mainBoardState[c]];
-        score += evaluateMainLine(lineValues);
+    for (let [a, b, c] of lines) {
+        score += evaluateMainLine([mainBoardState[a], mainBoardState[b], mainBoardState[c]]);
     }
     return score;
 }
 
-function evaluateMainLine(line) {
-    let score = 0;
-    if (line.filter(cell => cell === 'O').length === 3) {
-        score += 1000;
-    } else if (line.filter(cell => cell === 'O').length === 2 && line.includes('')) {
-        score += 100;
-    } else if (line.filter(cell => cell === 'O').length === 1 && line.filter(cell => cell === '').length === 2) {
-        score += 10;
-    }
-    if (line.filter(cell => cell === 'X').length === 3) {
-        score -= 1000;
-    } else if (line.filter(cell => cell === 'X').length === 2 && line.includes('')) {
-        score -= 100;
-    } else if (line.filter(cell => cell === 'X').length === 1 && line.filter(cell => cell === '').length === 2) {
-        score -= 10;
-    }
-    return score;
-}
-
+// Evalúa una línea en el mini-tablero
 function evaluateLine(line) {
     let score = 0;
     if (line.filter(cell => cell === 'O').length === 3) {
@@ -619,312 +456,221 @@ function evaluateLine(line) {
     return score;
 }
 
-
-function getRandomBoardIndex() {
-    const availableBoards = mainBoard
-        .map((board, index) => board.winner || isBoardFull(board.cells) ? null : index)
-        .filter(index => index !== null);
-    return availableBoards[Math.floor(Math.random() * availableBoards.length)];
-}
-
-function getBestMove(board, difficultyLevel) {
-    const cells = board.cells.slice();
-    if (difficultyLevel === 'easy') {
-        return mediumAIMove(cells);
-    } else if (difficultyLevel === 'medium') {
-        return minimax(cells, 'O').index;
-    } else {
-        return advancedAIMove(cells, 3); // Profundidad de 3
-    }
-}
-
-function getRandomCellIndex(cells) {
-    const availableCells = cells
-        .map((cell, index) => cell === '' ? index : null)
-        .filter(index => index !== null);
-    return availableCells.length > 0 ? availableCells[Math.floor(Math.random() * availableCells.length)] : null;
-}
-
-function mediumAIMove(cells) {
-    // 50% de probabilidad de hacer el mejor movimiento
-    if (Math.random() > 0.5) {
-        return minimax(cells, 'O').index;
-    } else {
-        return getRandomCellIndex(cells);
-    }
-}
-
-function minimax(newBoard, player) {
-    const availSpots = newBoard
-        .map((cell, index) => cell === '' ? index : null)
-        .filter(index => index !== null);
-
-    if (calculateWinner(newBoard) === 'X') {
-        return { score: -10 };
-    } else if (calculateWinner(newBoard) === 'O') {
-        return { score: 10 };
-    } else if (availSpots.length === 0) {
-        return { score: 0 };
-    }
-
-    const moves = [];
-
-    for (let i = 0; i < availSpots.length; i++) {
-        const move = {};
-        move.index = availSpots[i];
-        newBoard[availSpots[i]] = player;
-
-        if (player === 'O') {
-            const result = minimax(newBoard, 'X');
-            move.score = result.score;
-        } else {
-            const result = minimax(newBoard, 'O');
-            move.score = result.score;
-        }
-
-        newBoard[availSpots[i]] = '';
-        moves.push(move);
-    }
-
-    let bestMove;
-    if (player === 'O') {
-        let bestScore = -Infinity;
-        for (let i = 0; i < moves.length; i++) {
-            if (moves[i].score > bestScore) {
-                bestScore = moves[i].score;
-                bestMove = i;
-            }
-        }
-    } else {
-        let bestScore = Infinity;
-        for (let i = 0; i < moves.length; i++) {
-            if (moves[i].score < bestScore) {
-                bestScore = moves[i].score;
-                bestMove = i;
-            }
-        }
-    }
-
-    return moves[bestMove];
-}
-
-function advancedAIMove(cells, depth) {
-    const bestMove = minimaxAlphaBeta(cells, depth, -Infinity, Infinity, true);
-    return bestMove.index;
-}
-
-function minimaxAlphaBeta(board, depth, alpha, beta, isMaximizingPlayer) {
-    const availSpots = board
-        .map((cell, index) => cell === '' ? index : null)
-        .filter(index => index !== null);
-
-    const winner = calculateWinner(board);
-    if (winner === 'O') {
-        return { score: 100 - depth };
-    } else if (winner === 'X') {
-        return { score: -100 + depth };
-    } else if (availSpots.length === 0 || depth === 0) {
-        return { score: evaluateBoard(board) };
-    }
-
-    let bestMove;
-    if (isMaximizingPlayer) {
-        let maxEval = -Infinity;
-        for (let i = 0; i < availSpots.length; i++) {
-            const index = availSpots[i];
-            board[index] = 'O';
-            const eval = minimaxAlphaBeta(board, depth - 1, alpha, beta, false).score;
-            board[index] = '';
-            if (eval > maxEval) {
-                maxEval = eval;
-                bestMove = { index, score: maxEval };
-            }
-            alpha = Math.max(alpha, eval);
-            if (beta <= alpha) {
-                break;
-            }
-        }
-        return bestMove || { score: maxEval };
-    } else {
-        let minEval = Infinity;
-        for (let i = 0; i < availSpots.length; i++) {
-            const index = availSpots[i];
-            board[index] = 'X';
-            const eval = minimaxAlphaBeta(board, depth - 1, alpha, beta, true).score;
-            board[index] = '';
-            if (eval < minEval) {
-                minEval = eval;
-                bestMove = { index, score: minEval };
-            }
-            beta = Math.min(beta, eval);
-            if (beta <= alpha) {
-                break;
-            }
-        }
-        return bestMove || { score: minEval };
-    }
-}
-
-function evaluateBoard(board) {
-    // Evaluamos el tablero según la cantidad de líneas potenciales
-    const lines = [
-        [0,1,2], [3,4,5], [6,7,8], // Filas
-        [0,3,6], [1,4,7], [2,5,8], // Columnas
-        [0,4,8], [2,4,6]           // Diagonales
-    ];
+// Evalúa una línea en el tablero principal
+function evaluateMainLine(line) {
     let score = 0;
-
-    for (let line of lines) {
-        let [a, b, c] = line;
-        let lineValues = [board[a], board[b], board[c]];
-
-        score += evaluateLine(lineValues);
-    }
-    return score;
-}
-
-function evaluateLine(line) {
-    let score = 0;
-
     if (line.filter(cell => cell === 'O').length === 3) {
-        score += 100;
+        score += 1000;
     } else if (line.filter(cell => cell === 'O').length === 2 && line.includes('')) {
-        score += 10;
+        score += 100;
     } else if (line.filter(cell => cell === 'O').length === 1 && line.filter(cell => cell === '').length === 2) {
-        score += 1;
+        score += 10;
     }
-
     if (line.filter(cell => cell === 'X').length === 3) {
-        score -= 100;
+        score -= 1000;
     } else if (line.filter(cell => cell === 'X').length === 2 && line.includes('')) {
-        score -= 10;
+        score -= 100;
     } else if (line.filter(cell => cell === 'X').length === 1 && line.filter(cell => cell === '').length === 2) {
-        score -= 1;
+        score -= 10;
     }
-
     return score;
 }
 
-function getRandomCellIndex(cells) {
-    const availableCells = cells
-        .map((cell, index) => cell === '' ? index : null)
-        .filter(index => index !== null);
-    return availableCells.length > 0 ? availableCells[Math.floor(Math.random() * availableCells.length)] : null;
-}
+// ==================== FUNCIONES DE AUDIO ====================
 
-// Funciones para sonidos
+// Reproduce el sonido de colocar ficha
 function playPlaceSound() {
     if (sfxEnabled) {
-        const sound = document.getElementById('place-sound');
-        sound.currentTime = 0;
-        sound.play();
+        placeSound.currentTime = 0;
+        placeSound.play();
     }
 }
 
+// Reproduce el sonido de victoria
 function playWinSound() {
     if (sfxEnabled) {
-        const sound = document.getElementById('win-sound');
-        sound.currentTime = 0;
-        sound.play();
+        winSound.currentTime = 0;
+        winSound.play();
     }
 }
 
+// Reproduce el sonido de empate
 function playDrawSound() {
     if (sfxEnabled) {
-        const sound = document.getElementById('draw-sound');
-        sound.currentTime = 0;
-        sound.play();
+        drawSound.currentTime = 0;
+        drawSound.play();
     }
 }
 
+// Reproduce el sonido de clic
 function playClickSound() {
     if (sfxEnabled) {
-        const sound = document.getElementById('click-sound');
-        sound.currentTime = 0;
-        sound.play();
+        clickSound.currentTime = 0;
+        clickSound.play();
     }
 }
 
-
-// Funciones para manejar BGM
+// Reproduce la música del menú principal
 function playMainMenuBGM() {
-    mainMenuBGM.play();
+    if (bgmEnabled) {
+        mainMenuBGM.play();
+    }
 }
 
+// Detiene la música del menú principal
 function stopMainMenuBGM() {
     mainMenuBGM.pause();
     mainMenuBGM.currentTime = 0;
 }
 
-
-function stopGameBGM() {
-    gameBGM.pause();
-    gameBGM.currentTime = 0;
+// Inicializa y reproduce una canción aleatoria
+function initializeRandomSong() {
+    currentSongIndex = Math.floor(Math.random() * songs.length);
+    loadSong(currentSongIndex);
 }
 
+// Carga y reproduce una canción por índice
+function loadSong(index) {
+    audio.src = songs[index];
+    document.getElementById('song-name').textContent = songs[index].split('/').pop();
+    audio.load();
+    if (bgmEnabled) {
+        audio.play();
+        isPlaying = true;
+    }
+}
 
+// Cambia entre reproducir y pausar la música
+function togglePlayPause() {
+    if (isPlaying) {
+        audio.pause();
+    } else {
+        audio.play();
+    }
+    isPlaying = !isPlaying;
+}
+
+// Reproduce la siguiente canción
+function nextSong() {
+    currentSongIndex = (currentSongIndex + 1) % songs.length;
+    loadSong(currentSongIndex);
+}
+
+// Reproduce la canción anterior
+function previousSong() {
+    currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+    loadSong(currentSongIndex);
+}
+
+// Detiene la reproducción de música
+function stopAudio() {
+    audio.pause();
+    audio.currentTime = 0;
+    isPlaying = false;
+}
+
+// Ajusta el volumen de la música
+function setBGMVolume(volume) {
+    audio.volume = volume;
+    mainMenuBGM.volume = volume;
+}
+
+// ==================== FUNCIONES DE TEMPORIZADOR ====================
+
+// Inicia el temporizador del juego
+function startTimer() {
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        if (!isGamePaused) {
+            const timeElapsed = Math.floor((Date.now() - gameStartTime) / 1000);
+            const minutes = Math.floor(timeElapsed / 60).toString().padStart(2, '0');
+            const seconds = (timeElapsed % 60).toString().padStart(2, '0');
+            document.getElementById('time-elapsed').textContent = `${minutes}:${seconds}`;
+        }
+    }, 1000);
+}
+
+// ==================== FUNCIONES DE INTERFAZ DE USUARIO ====================
+
+// Muestra u oculta un elemento por su ID
+function toggleDisplay(elementId, show) {
+    document.getElementById(elementId).style.display = show ? 'block' : 'none';
+}
+
+// Muestra el modal de fin de juego
+function showGameOverModal(message) {
+    document.getElementById('game-over-message').textContent = message;
+    toggleDisplay('game-over-modal', true);
+}
+
+// Muestra el modal de empate
+function showDrawModal() {
+    toggleDisplay('draw-modal', true);
+}
+
+// Oculta todos los modales
+function hideAllModals() {
+    const modals = ['draw-modal', 'game-over-modal', 'instructions-modal', 'pause-modal', 'ai-thinking-modal'];
+    modals.forEach(modalId => toggleDisplay(modalId, false));
+}
+
+// Muestra el modal de IA pensando
 function showAIThinkingModal() {
-    const modal = document.getElementById('ai-thinking-modal');
-    modal.style.display = 'block';
+    toggleDisplay('ai-thinking-modal', true);
 }
 
+// Oculta el modal de IA pensando
 function hideAIThinkingModal() {
-    const modal = document.getElementById('ai-thinking-modal');
-    modal.style.display = 'none';
+    toggleDisplay('ai-thinking-modal', false);
 }
 
+// Muestra el modal de instrucciones
 function showInstructions() {
-    // ocultar el modal de pausa si está abierto
     hidePauseModal();
-    const modal = document.getElementById('instructions-modal');
-    modal.style.display = 'block';
-
-    playClickSound(); // Opcional: Si tienes una función para el sonido de clic
+    toggleDisplay('instructions-modal', true);
+    playClickSound();
 }
 
+// Oculta el modal de instrucciones
 function hideInstructions() {
-    const modal = document.getElementById('instructions-modal');
-    modal.style.display = 'none';
+    toggleDisplay('instructions-modal', false);
     if (isGamePaused) {
         showPauseModal();
     }
     playClickSound();
 }
 
-// Variable para controlar si el juego está en pausa
-let isGamePaused = false;
+// Muestra el modal de pausa
+function showPauseModal() {
+    toggleDisplay('pause-modal', true);
+}
 
-// Función para pausar el juego
+// Oculta el modal de pausa
+function hidePauseModal() {
+    toggleDisplay('pause-modal', false);
+}
+
+// ==================== FUNCIONES DE PAUSA Y EVENTOS ====================
+
+// Pausa el juego
 function pauseGame() {
     if (!gameActive || isGamePaused) return;
     isGamePaused = true;
-    clearInterval(timerInterval); // Pausar el temporizador si es necesario
+    clearInterval(timerInterval);
     showPauseModal();
 }
 
-// Función para reanudar el juego
+// Reanuda el juego
 function resumeGame() {
     if (!isGamePaused) return;
     isGamePaused = false;
-    startTimer(); // Reanudar el temporizador si es necesario
+    startTimer();
     hidePauseModal();
 }
 
-// Mostrar el modal de pausa
-function showPauseModal() {
-    const modal = document.getElementById('pause-modal');
-    modal.style.display = 'block';
-}
-
-// Ocultar el modal de pausa
-function hidePauseModal() {
-    const modal = document.getElementById('pause-modal');
-    modal.style.display = 'none';
-}
-
-// Evento para detectar las teclas Esc, P o Espacio
+// Evento para detectar teclas y pausar/reanudar el juego
 document.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape' || event.key === 'p' || event.key === 'P' || event.key === ' ') {
+    if (['Escape', 'p', 'P', ' '].includes(event.key)) {
         if (!isGamePaused) {
             pauseGame();
         } else {
@@ -933,10 +679,25 @@ document.addEventListener('keydown', function(event) {
     }
 });
 
-// Función para ajustar el volumen de la música
-function setBGMVolume(volume) {
-    // Set the volume for the current background music
-    if (gameBGM) {
-        gameBGM.volume = volume;
-    }
+// ==================== FUNCIONES AUXILIARES ====================
+
+// Anima la colocación de una ficha en una celda
+function animateCellPlacement(miniBoard, cellIndex) {
+    const cellElement = document.getElementsByClassName('mini-board')[activeBoard || 0].children[cellIndex];
+    const symbolSpan = document.createElement('span');
+    symbolSpan.textContent = currentPlayer;
+    symbolSpan.classList.add('new-symbol');
+    cellElement.appendChild(symbolSpan);
+    setTimeout(() => {
+        symbolSpan.classList.remove('new-symbol');
+    }, 500);
 }
+
+// Reinicia el estado del juego
+function resetGameState() {
+    clearInterval(timerInterval);
+    isGamePaused = false;
+    gameActive = false;
+}
+
+// ==================== FIN DEL SCRIPT ====================
