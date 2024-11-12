@@ -44,638 +44,920 @@ window.onload = function() {
 
 // Configura los elementos de audio
 function setupAudioElements() {
-    mainMenuBGM = document.getElementById('bgm-main-menu');
-    placeSound = document.getElementById('place-sound');
-    winSound = document.getElementById('win-sound');
-    drawSound = document.getElementById('draw-sound');
-    clickSound = document.getElementById('click-sound');
+    try {
+        mainMenuBGM = document.getElementById('bgm-main-menu');
+        placeSound = document.getElementById('place-sound');
+        winSound = document.getElementById('win-sound');
+        drawSound = document.getElementById('draw-sound');
+        clickSound = document.getElementById('click-sound');
 
-    mainMenuBGM.loop = true;
-    audio.addEventListener('ended', nextSong);
+        if (mainMenuBGM) {
+            mainMenuBGM.loop = true;
+        } else {
+            console.error("Elemento 'bgm-main-menu' no encontrado.");
+        }
+
+        audio.addEventListener('ended', nextSong);
+    } catch (error) {
+        console.error("Error en setupAudioElements:", error);
+    }
 }
 
 // ==================== FUNCIONES DE NAVEGACIÓN Y MENÚ ====================
 
 // Muestra el menú de selección de dificultad
 function showDifficulty(mode) {
-    gameMode = mode;
-    toggleDisplay('main-menu', false);
-    toggleDisplay('difficulty-menu', true);
-    playClickSound();
+    try {
+        gameMode = mode;
+        toggleDisplay('main-menu', false);
+        toggleDisplay('difficulty-menu', true);
+        playClickSound();
+    } catch (error) {
+        console.error("Error en showDifficulty:", error);
+    }
 }
 
 // Inicia el juego con el modo y dificultad seleccionados
 function startGame(mode, selectedDifficulty) {
-    if (selectedDifficulty) {
-        difficulty = selectedDifficulty;
+    try {
+        if (selectedDifficulty) {
+            difficulty = selectedDifficulty;
+        }
+        gameMode = mode;
+        resetGameState();
+        toggleDisplay('main-menu', false);
+        toggleDisplay('difficulty-menu', false);
+        toggleDisplay('game-container', true);
+        playClickSound();
+        stopMainMenuBGM();
+        initializeRandomSong();
+        initGame();
+    } catch (error) {
+        console.error("Error en startGame:", error);
     }
-    gameMode = mode;
-    resetGameState();
-    toggleDisplay('main-menu', false);
-    toggleDisplay('difficulty-menu', false);
-    toggleDisplay('game-container', true);
-    playClickSound();
-    stopMainMenuBGM();
-    initializeRandomSong();
-    initGame();
 }
 
 // Regresa al menú principal y reinicia el estado del juego
 function backToMainMenu() {
-    hideAllModals();
-    toggleDisplay('game-container', false);
-    toggleDisplay('main-menu', true);
-    resetGameState();
-    playClickSound();
-    stopAudio();
-    playMainMenuBGM();
+    try {
+        hideAllModals();
+        toggleDisplay('game-container', false);
+        toggleDisplay('main-menu', true);
+        resetGameState();
+        playClickSound();
+        stopAudio();
+        playMainMenuBGM();
+    } catch (error) {
+        console.error("Error en backToMainMenu:", error);
+    }
 }
 
 // ==================== FUNCIONES DEL JUEGO ====================
 
 // Inicializa el estado del juego
 function initGame() {
-    isGamePaused = false;
-    gameActive = true;
-    currentPlayer = 'X';
-    moveCount = 0;
-    activeBoard = null;
-    gameStartTime = Date.now();
-    mainBoard = Array(9).fill(null).map(() => ({
-        cells: Array(9).fill(''),
-        winner: null
-    }));
-    startTimer();
-    drawBoard();
-    updateMessage(`Turno de ${currentPlayer}`);
+    try {
+        isGamePaused = false;
+        gameActive = true;
+        currentPlayer = 'X';
+        moveCount = 0;
+        activeBoard = null;
+        gameStartTime = Date.now();
+        mainBoard = Array(9).fill(null).map(() => ({
+            cells: Array(9).fill(''),
+            winner: null
+        }));
+        startTimer();
+        drawBoard();
+        updateMessage(`Turno de ${currentPlayer}`);
+    } catch (error) {
+        console.error("Error en initGame:", error);
+    }
 }
 
 // Dibuja el tablero principal y los mini-tableros
 function drawBoard() {
-    const boardElement = document.getElementById('board');
-    boardElement.innerHTML = '';
+    try {
+        const boardElement = document.getElementById('board');
+        if (!boardElement) {
+            console.error("Elemento 'board' no encontrado.");
+            return;
+        }
+        boardElement.innerHTML = '';
 
-    mainBoard.forEach((miniBoard, index) => {
-        const miniBoardElement = document.createElement('div');
-        miniBoardElement.classList.add('mini-board');
-        if (activeBoard === index || activeBoard === null) {
-            miniBoardElement.classList.add('active');
-        }
-        if (miniBoard.winner) {
-            miniBoardElement.classList.add(`winner-${miniBoard.winner}`);
-            miniBoardElement.innerHTML = `<span>${miniBoard.winner}</span>`;
-        } else {
-            drawMiniBoardCells(miniBoard, miniBoardElement, index);
-        }
-        boardElement.appendChild(miniBoardElement);
-    });
+        mainBoard.forEach((miniBoard, index) => {
+            const miniBoardElement = document.createElement('div');
+            miniBoardElement.classList.add('mini-board');
+            if (activeBoard === index || activeBoard === null) {
+                miniBoardElement.classList.add('active');
+            }
+            if (miniBoard.winner) {
+                miniBoardElement.classList.add(`winner-${miniBoard.winner}`);
+                miniBoardElement.innerHTML = `<span>${miniBoard.winner}</span>`;
+            } else {
+                drawMiniBoardCells(miniBoard, miniBoardElement, index);
+            }
+            boardElement.appendChild(miniBoardElement);
+        });
+    } catch (error) {
+        console.error("Error en drawBoard:", error);
+    }
 }
 
 // Dibuja las celdas de un mini-tablero
 function drawMiniBoardCells(miniBoard, miniBoardElement, boardIndex) {
-    miniBoard.cells.forEach((cell, cellIndex) => {
-        const cellElement = document.createElement('div');
-        cellElement.classList.add('cell');
-        if (cell !== '') {
-            cellElement.innerHTML = `<span>${cell}</span>`;
-            cellElement.classList.add('disabled');
-        } else if (gameActive && (activeBoard === boardIndex || activeBoard === null)) {
-            cellElement.addEventListener('click', () => handleCellClick(boardIndex, cellIndex));
-        } else {
-            cellElement.classList.add('disabled');
-        }
-        miniBoardElement.appendChild(cellElement);
-    });
+    try {
+        miniBoard.cells.forEach((cell, cellIndex) => {
+            const cellElement = document.createElement('div');
+            cellElement.classList.add('cell');
+            if (cell !== '') {
+                cellElement.innerHTML = `<span>${cell}</span>`;
+                cellElement.classList.add('disabled');
+            } else if (gameActive && (activeBoard === boardIndex || activeBoard === null)) {
+                cellElement.addEventListener('click', () => handleCellClick(boardIndex, cellIndex));
+            } else {
+                cellElement.classList.add('disabled');
+            }
+            miniBoardElement.appendChild(cellElement);
+        });
+    } catch (error) {
+        console.error("Error en drawMiniBoardCells:", error);
+    }
 }
 
 // Maneja el evento de clic en una celda
 function handleCellClick(boardIndex, cellIndex) {
-    if (!gameActive || isGamePaused) return;
-    if (activeBoard !== null && activeBoard !== boardIndex) {
-        updateMessage(`Debes jugar en el tablero ${activeBoard + 1}`);
-        return;
-    }
-    const miniBoard = mainBoard[boardIndex];
-    if (miniBoard.cells[cellIndex] !== '') return;
+    try {
+        if (!gameActive || isGamePaused) return;
+        if (activeBoard !== null && activeBoard !== boardIndex) {
+            updateMessage(`Debes jugar en el tablero ${activeBoard + 1}`);
+            return;
+        }
+        const miniBoard = mainBoard[boardIndex];
+        if (miniBoard.cells[cellIndex] !== '') return;
 
-    miniBoard.cells[cellIndex] = currentPlayer;
-    moveCount++;
-    playPlaceSound();
-    animateCellPlacement(miniBoard, cellIndex);
-    checkMiniBoardWinner(miniBoard, boardIndex);
-    updateActiveBoard(cellIndex);
-    drawBoard();
-    checkGameWinner();
-    if (!gameActive) return;
-    if (isDrawImminent()) {
-        gameActive = false;
-        clearInterval(timerInterval);
-        showDrawModal();
-        return;
-    }
-    switchPlayer();
-    updateMessage(`Turno de ${currentPlayer}`);
-    if (gameMode === 'cpu' && currentPlayer === 'O') {
-        cpuMove();
+        miniBoard.cells[cellIndex] = currentPlayer;
+        moveCount++;
+        playPlaceSound();
+        animateCellPlacement(miniBoard, cellIndex);
+        checkMiniBoardWinner(miniBoard, boardIndex);
+        updateActiveBoard(cellIndex);
+        drawBoard();
+        checkGameWinner();
+        if (!gameActive) return;
+        if (isDrawImminent()) {
+            gameActive = false;
+            clearInterval(timerInterval);
+            showDrawModal();
+            return;
+        }
+        switchPlayer();
+        updateMessage(`Turno de ${currentPlayer}`);
+        if (gameMode === 'cpu' && currentPlayer === 'O') {
+            cpuMove();
+        }
+    } catch (error) {
+        console.error("Error en handleCellClick:", error);
     }
 }
 
 // Cambia al siguiente jugador
 function switchPlayer() {
-    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+    try {
+        currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+    } catch (error) {
+        console.error("Error en switchPlayer:", error);
+    }
 }
 
 // Actualiza el mensaje de estado del juego
 function updateMessage(message) {
-    document.getElementById('message').textContent = message;
+    try {
+        const messageElement = document.getElementById('message');
+        if (messageElement) {
+            messageElement.textContent = message;
+        } else {
+            console.error("Elemento 'message' no encontrado.");
+        }
+    } catch (error) {
+        console.error("Error en updateMessage:", error);
+    }
 }
 
 // Verifica si hay un ganador en el mini-tablero
 function checkMiniBoardWinner(miniBoard, boardIndex) {
-    const winner = calculateWinner(miniBoard.cells);
-    if (winner) {
-        miniBoard.winner = winner;
+    try {
+        const winner = calculateWinner(miniBoard.cells);
+        if (winner) {
+            miniBoard.winner = winner;
+        }
+    } catch (error) {
+        console.error("Error en checkMiniBoardWinner:", error);
     }
 }
 
 // Actualiza el tablero activo basado en el último movimiento
 function updateActiveBoard(cellIndex) {
-    const nextBoard = mainBoard[cellIndex];
-    activeBoard = nextBoard.winner || isBoardFull(nextBoard.cells) ? null : cellIndex;
+    try {
+        const nextBoard = mainBoard[cellIndex];
+        activeBoard = nextBoard.winner || isBoardFull(nextBoard.cells) ? null : cellIndex;
+    } catch (error) {
+        console.error("Error en updateActiveBoard:", error);
+    }
 }
 
 // Verifica si hay un ganador en el juego principal
 function checkGameWinner() {
-    const mainBoardState = mainBoard.map(board => board.winner || '');
-    const winner = calculateWinner(mainBoardState);
+    try {
+        const mainBoardState = mainBoard.map(board => board.winner || '');
+        const winner = calculateWinner(mainBoardState);
 
-    if (winner) {
-        handleGameOver(`${winner} ha ganado el juego`);
-    } else if (mainBoardState.every(cell => cell !== '')) {
-        handleGameOver('¡Es un empate!');
+        if (winner) {
+            handleGameOver(`${winner} ha ganado el juego`);
+        } else if (mainBoardState.every(cell => cell !== '')) {
+            handleGameOver('¡Es un empate!');
+        }
+    } catch (error) {
+        console.error("Error en checkGameWinner:", error);
     }
 }
 
 // Maneja el final del juego
 function handleGameOver(message) {
-    gameActive = false;
-    clearInterval(timerInterval);
-    playWinSound();
-    showGameOverModal(message);
+    try {
+        gameActive = false;
+        clearInterval(timerInterval);
+        playWinSound();
+        showGameOverModal(message);
+    } catch (error) {
+        console.error("Error en handleGameOver:", error);
+    }
 }
 
 // Calcula si hay un ganador en un conjunto de celdas
 function calculateWinner(cells) {
-    const lines = [
-        [0,1,2], [3,4,5], [6,7,8], // Filas
-        [0,3,6], [1,4,7], [2,5,8], // Columnas
-        [0,4,8], [2,4,6]           // Diagonales
-    ];
-    for (let [a, b, c] of lines) {
-        if (cells[a] && cells[a] === cells[b] && cells[a] === cells[c]) {
-            return cells[a];
+    try {
+        const lines = [
+            [0,1,2], [3,4,5], [6,7,8], // Filas
+            [0,3,6], [1,4,7], [2,5,8], // Columnas
+            [0,4,8], [2,4,6]           // Diagonales
+        ];
+        for (let [a, b, c] of lines) {
+            if (cells[a] && cells[a] === cells[b] && cells[a] === cells[c]) {
+                return cells[a];
+            }
         }
+        return null;
+    } catch (error) {
+        console.error("Error en calculateWinner:", error);
+        return null;
     }
-    return null;
 }
 
 // Verifica si un tablero está lleno
 function isBoardFull(cells) {
-    return cells.every(cell => cell !== '');
+    try {
+        return cells.every(cell => cell !== '');
+    } catch (error) {
+        console.error("Error en isBoardFull:", error);
+        return false;
+    }
 }
 
 // Verifica si el empate es inminente
 function isDrawImminent() {
-    const mainBoardState = mainBoard.map(board => board.winner || '');
-    const availableBoards = mainBoard.filter(board => !board.winner && !isBoardFull(board.cells));
-    return availableBoards.length === 0 && !calculateWinner(mainBoardState);
+    try {
+        const mainBoardState = mainBoard.map(board => board.winner || '');
+        const availableBoards = mainBoard.filter(board => !board.winner && !isBoardFull(board.cells));
+        return availableBoards.length === 0 && !calculateWinner(mainBoardState);
+    } catch (error) {
+        console.error("Error en isDrawImminent:", error);
+        return false;
+    }
 }
 
 // Reinicia el juego
 function resetGame() {
-    clearInterval(timerInterval);
-    initGame();
-    playClickSound();
+    try {
+        clearInterval(timerInterval);
+        initGame();
+        playClickSound();
+    } catch (error) {
+        console.error("Error en resetGame:", error);
+    }
 }
 
 // ==================== FUNCIONES DE IA ====================
 
 // Realiza el movimiento de la IA
 function cpuMove() {
-    showAIThinkingModal();
-    setTimeout(() => {
-        const gameState = {
-            mainBoard: mainBoard.map(board => ({
-                cells: board.cells.slice(),
-                winner: board.winner,
-            })),
-            activeBoard: activeBoard,
-            currentPlayer: currentPlayer,
-        };
-        const isMaximizingPlayer = (currentPlayer === 'O');
-        const depth = getDepthByDifficulty();
-        const result = minimaxGame(gameState, depth, -Infinity, Infinity, isMaximizingPlayer);
-        if (result.move) {
-            handleCellClick(result.move.boardIndex, result.move.cellIndex);
-        }
-        hideAIThinkingModal();
-    }, 500);
+    try {
+        showAIThinkingModal();
+        setTimeout(() => {
+            const gameState = {
+                mainBoard: mainBoard.map(board => ({
+                    cells: board.cells.slice(),
+                    winner: board.winner,
+                })),
+                activeBoard: activeBoard,
+                currentPlayer: currentPlayer,
+            };
+            const isMaximizingPlayer = (currentPlayer === 'O');
+            const depth = getDepthByDifficulty();
+            const result = minimaxGame(gameState, depth, -Infinity, Infinity, isMaximizingPlayer);
+            if (result.move) {
+                handleCellClick(result.move.boardIndex, result.move.cellIndex);
+            }
+            hideAIThinkingModal();
+        }, 500);
+    } catch (error) {
+        console.error("Error en cpuMove:", error);
+    }
 }
 
 // Obtiene la profundidad de búsqueda basada en la dificultad
 function getDepthByDifficulty() {
-    switch (difficulty) {
-        case 'easy':
-            return 1;
-        case 'medium':
-            return 2;
-        case 'hard':
-            return 3;
-        default:
-            return 2;
+    try {
+        switch (difficulty) {
+            case 'easy':
+                return 1;
+            case 'medium':
+                return 2;
+            case 'hard':
+                return 3;
+            default:
+                return 2;
+        }
+    } catch (error) {
+        console.error("Error en getDepthByDifficulty:", error);
+        return 2;
     }
 }
 
 // Implementación del algoritmo Minimax con poda alfa-beta
 function minimaxGame(gameState, depth, alpha, beta, isMaximizingPlayer) {
-    if (depth === 0 || isGameOver(gameState)) {
-        return { score: evaluateGameState(gameState), move: null };
-    }
-    const possibleMoves = generatePossibleMoves(gameState);
-    let bestMove = null;
+    try {
+        if (depth === 0 || isGameOver(gameState)) {
+            return { score: evaluateGameState(gameState), move: null };
+        }
+        const possibleMoves = generatePossibleMoves(gameState);
+        let bestMove = null;
 
-    if (isMaximizingPlayer) {
-        let maxEval = -Infinity;
-        for (const move of possibleMoves) {
-            const newGameState = applyMove(gameState, move);
-            const result = minimaxGame(newGameState, depth - 1, alpha, beta, false);
-            if (result.score > maxEval) {
-                maxEval = result.score;
-                bestMove = move;
+        if (isMaximizingPlayer) {
+            let maxEval = -Infinity;
+            for (const move of possibleMoves) {
+                const newGameState = applyMove(gameState, move);
+                const result = minimaxGame(newGameState, depth - 1, alpha, beta, false);
+                if (result.score > maxEval) {
+                    maxEval = result.score;
+                    bestMove = move;
+                }
+                alpha = Math.max(alpha, maxEval);
+                if (beta <= alpha) break;
             }
-            alpha = Math.max(alpha, maxEval);
-            if (beta <= alpha) break;
-        }
-        return { score: maxEval, move: bestMove };
-    } else {
-        let minEval = Infinity;
-        for (const move of possibleMoves) {
-            const newGameState = applyMove(gameState, move);
-            const result = minimaxGame(newGameState, depth - 1, alpha, beta, true);
-            if (result.score < minEval) {
-                minEval = result.score;
-                bestMove = move;
+            return { score: maxEval, move: bestMove };
+        } else {
+            let minEval = Infinity;
+            for (const move of possibleMoves) {
+                const newGameState = applyMove(gameState, move);
+                const result = minimaxGame(newGameState, depth - 1, alpha, beta, true);
+                if (result.score < minEval) {
+                    minEval = result.score;
+                    bestMove = move;
+                }
+                beta = Math.min(beta, minEval);
+                if (beta <= alpha) break;
             }
-            beta = Math.min(beta, minEval);
-            if (beta <= alpha) break;
+            return { score: minEval, move: bestMove };
         }
-        return { score: minEval, move: bestMove };
+    } catch (error) {
+        console.error("Error en minimaxGame:", error);
+        return { score: 0, move: null };
     }
 }
 
 // Genera todos los movimientos posibles en el estado actual del juego
 function generatePossibleMoves(gameState) {
-    let moves = [];
-    if (gameState.activeBoard !== null) {
-        moves = getMovesForBoard(gameState, gameState.activeBoard);
-        if (moves.length > 0) return moves;
-        gameState.activeBoard = null;
+    try {
+        let moves = [];
+        if (gameState.activeBoard !== null) {
+            moves = getMovesForBoard(gameState, gameState.activeBoard);
+            if (moves.length > 0) return moves;
+            gameState.activeBoard = null;
+        }
+        for (let boardIndex = 0; boardIndex < 9; boardIndex++) {
+            moves = moves.concat(getMovesForBoard(gameState, boardIndex));
+        }
+        return moves;
+    } catch (error) {
+        console.error("Error en generatePossibleMoves:", error);
+        return [];
     }
-    for (let boardIndex = 0; boardIndex < 9; boardIndex++) {
-        moves = moves.concat(getMovesForBoard(gameState, boardIndex));
-    }
-    return moves;
 }
 
 // Obtiene los movimientos posibles para un mini-tablero específico
 function getMovesForBoard(gameState, boardIndex) {
-    const moves = [];
-    const board = gameState.mainBoard[boardIndex];
-    if (!board.winner && !isBoardFull(board.cells)) {
-        for (let cellIndex = 0; cellIndex < 9; cellIndex++) {
-            if (board.cells[cellIndex] === '') {
-                moves.push({ boardIndex, cellIndex });
+    try {
+        const moves = [];
+        const board = gameState.mainBoard[boardIndex];
+        if (!board.winner && !isBoardFull(board.cells)) {
+            for (let cellIndex = 0; cellIndex < 9; cellIndex++) {
+                if (board.cells[cellIndex] === '') {
+                    moves.push({ boardIndex, cellIndex });
+                }
             }
         }
+        return moves;
+    } catch (error) {
+        console.error("Error en getMovesForBoard:", error);
+        return [];
     }
-    return moves;
 }
 
 // Aplica un movimiento y devuelve un nuevo estado del juego
 function applyMove(gameState, move) {
-    const newGameState = JSON.parse(JSON.stringify(gameState)); // Clona el estado
-    const { boardIndex, cellIndex } = move;
-    const board = newGameState.mainBoard[boardIndex];
-    board.cells[cellIndex] = newGameState.currentPlayer;
-    const winner = calculateWinner(board.cells);
-    if (winner) {
-        board.winner = winner;
+    try {
+        const newGameState = JSON.parse(JSON.stringify(gameState)); // Clona el estado
+        const { boardIndex, cellIndex } = move;
+        const board = newGameState.mainBoard[boardIndex];
+        board.cells[cellIndex] = newGameState.currentPlayer;
+        const winner = calculateWinner(board.cells);
+        if (winner) {
+            board.winner = winner;
+        }
+        const nextBoard = newGameState.mainBoard[cellIndex];
+        newGameState.activeBoard = nextBoard.winner || isBoardFull(nextBoard.cells) ? null : cellIndex;
+        newGameState.currentPlayer = newGameState.currentPlayer === 'X' ? 'O' : 'X';
+        return newGameState;
+    } catch (error) {
+        console.error("Error en applyMove:", error);
+        return gameState;
     }
-    const nextBoard = newGameState.mainBoard[cellIndex];
-    newGameState.activeBoard = nextBoard.winner || isBoardFull(nextBoard.cells) ? null : cellIndex;
-    newGameState.currentPlayer = newGameState.currentPlayer === 'X' ? 'O' : 'X';
-    return newGameState;
 }
 
 // Verifica si el juego ha terminado
 function isGameOver(gameState) {
-    const mainBoardState = gameState.mainBoard.map(board => board.winner || '');
-    return calculateWinner(mainBoardState) || mainBoardState.every(cell => cell !== '');
+    try {
+        const mainBoardState = gameState.mainBoard.map(board => board.winner || '');
+        return calculateWinner(mainBoardState) || mainBoardState.every(cell => cell !== '');
+    } catch (error) {
+        console.error("Error en isGameOver:", error);
+        return false;
+    }
 }
 
 // Evalúa el estado del juego para la IA
 function evaluateGameState(gameState) {
-    const mainBoardState = gameState.mainBoard.map(board => board.winner || '');
-    const winner = calculateWinner(mainBoardState);
-    if (winner === 'O') {
-        return Infinity;
-    } else if (winner === 'X') {
-        return -Infinity;
-    } else {
-        let score = 0;
-        for (let i = 0; i < 9; i++) {
-            const board = gameState.mainBoard[i];
-            if (board.winner === 'O') {
-                score += 100;
-            } else if (board.winner === 'X') {
-                score -= 100;
-            } else {
-                score += evaluateMiniBoard(board.cells);
+    try {
+        const mainBoardState = gameState.mainBoard.map(board => board.winner || '');
+        const winner = calculateWinner(mainBoardState);
+        if (winner === 'O') {
+            return Infinity;
+        } else if (winner === 'X') {
+            return -Infinity;
+        } else {
+            let score = 0;
+            for (let i = 0; i < 9; i++) {
+                const board = gameState.mainBoard[i];
+                if (board.winner === 'O') {
+                    score += 100;
+                } else if (board.winner === 'X') {
+                    score -= 100;
+                } else {
+                    score += evaluateMiniBoard(board.cells);
+                }
             }
+            score += evaluateMainBoard(mainBoardState);
+            return score;
         }
-        score += evaluateMainBoard(mainBoardState);
-        return score;
+    } catch (error) {
+        console.error("Error en evaluateGameState:", error);
+        return 0;
     }
 }
 
 // Evalúa un mini-tablero
 function evaluateMiniBoard(cells) {
-    const lines = [
-        [0,1,2], [3,4,5], [6,7,8],
-        [0,3,6], [1,4,7], [2,5,8],
-        [0,4,8], [2,4,6]
-    ];
-    let score = 0;
-    for (let [a, b, c] of lines) {
-        score += evaluateLine([cells[a], cells[b], cells[c]]);
+    try {
+        const lines = [
+            [0,1,2], [3,4,5], [6,7,8],
+            [0,3,6], [1,4,7], [2,5,8],
+            [0,4,8], [2,4,6]
+        ];
+        let score = 0;
+        for (let [a, b, c] of lines) {
+            score += evaluateLine([cells[a], cells[b], cells[c]]);
+        }
+        return score;
+    } catch (error) {
+        console.error("Error en evaluateMiniBoard:", error);
+        return 0;
     }
-    return score;
 }
 
 // Evalúa el tablero principal
 function evaluateMainBoard(mainBoardState) {
-    const lines = [
-        [0,1,2], [3,4,5], [6,7,8],
-        [0,3,6], [1,4,7], [2,5,8],
-        [0,4,8], [2,4,6]
-    ];
-    let score = 0;
-    for (let [a, b, c] of lines) {
-        score += evaluateMainLine([mainBoardState[a], mainBoardState[b], mainBoardState[c]]);
+    try {
+        const lines = [
+            [0,1,2], [3,4,5], [6,7,8],
+            [0,3,6], [1,4,7], [2,5,8],
+            [0,4,8], [2,4,6]
+        ];
+        let score = 0;
+        for (let [a, b, c] of lines) {
+            score += evaluateMainLine([mainBoardState[a], mainBoardState[b], mainBoardState[c]]);
+        }
+        return score;
+    } catch (error) {
+        console.error("Error en evaluateMainBoard:", error);
+        return 0;
     }
-    return score;
 }
 
 // Evalúa una línea en el mini-tablero
 function evaluateLine(line) {
-    let score = 0;
-    if (line.filter(cell => cell === 'O').length === 3) {
-        score += 10;
-    } else if (line.filter(cell => cell === 'O').length === 2 && line.includes('')) {
-        score += 5;
-    } else if (line.filter(cell => cell === 'O').length === 1 && line.filter(cell => cell === '').length === 2) {
-        score += 1;
+    try {
+        let score = 0;
+        if (line.filter(cell => cell === 'O').length === 3) {
+            score += 10;
+        } else if (line.filter(cell => cell === 'O').length === 2 && line.includes('')) {
+            score += 5;
+        } else if (line.filter(cell => cell === 'O').length === 1 && line.filter(cell => cell === '').length === 2) {
+            score += 1;
+        }
+        if (line.filter(cell => cell === 'X').length === 3) {
+            score -= 10;
+        } else if (line.filter(cell => cell === 'X').length === 2 && line.includes('')) {
+            score -= 5;
+        } else if (line.filter(cell => cell === 'X').length === 1 && line.filter(cell => cell === '').length === 2) {
+            score -= 1;
+        }
+        return score;
+    } catch (error) {
+        console.error("Error en evaluateLine:", error);
+        return 0;
     }
-    if (line.filter(cell => cell === 'X').length === 3) {
-        score -= 10;
-    } else if (line.filter(cell => cell === 'X').length === 2 && line.includes('')) {
-        score -= 5;
-    } else if (line.filter(cell => cell === 'X').length === 1 && line.filter(cell => cell === '').length === 2) {
-        score -= 1;
-    }
-    return score;
 }
 
 // Evalúa una línea en el tablero principal
 function evaluateMainLine(line) {
-    let score = 0;
-    if (line.filter(cell => cell === 'O').length === 3) {
-        score += 1000;
-    } else if (line.filter(cell => cell === 'O').length === 2 && line.includes('')) {
-        score += 100;
-    } else if (line.filter(cell => cell === 'O').length === 1 && line.filter(cell => cell === '').length === 2) {
-        score += 10;
+    try {
+        let score = 0;
+        if (line.filter(cell => cell === 'O').length === 3) {
+            score += 1000;
+        } else if (line.filter(cell => cell === 'O').length === 2 && line.includes('')) {
+            score += 100;
+        } else if (line.filter(cell => cell === 'O').length === 1 && line.filter(cell => cell === '').length === 2) {
+            score += 10;
+        }
+        if (line.filter(cell => cell === 'X').length === 3) {
+            score -= 1000;
+        } else if (line.filter(cell => cell === 'X').length === 2 && line.includes('')) {
+            score -= 100;
+        } else if (line.filter(cell => cell === 'X').length === 1 && line.filter(cell => cell === '').length === 2) {
+            score -= 10;
+        }
+        return score;
+    } catch (error) {
+        console.error("Error en evaluateMainLine:", error);
+        return 0;
     }
-    if (line.filter(cell => cell === 'X').length === 3) {
-        score -= 1000;
-    } else if (line.filter(cell => cell === 'X').length === 2 && line.includes('')) {
-        score -= 100;
-    } else if (line.filter(cell => cell === 'X').length === 1 && line.filter(cell => cell === '').length === 2) {
-        score -= 10;
-    }
-    return score;
 }
 
 // ==================== FUNCIONES DE AUDIO ====================
 
 // Reproduce el sonido de colocar ficha
 function playPlaceSound() {
-    if (sfxEnabled) {
-        placeSound.currentTime = 0;
-        placeSound.play();
+    try {
+        if (sfxEnabled && placeSound) {
+            placeSound.currentTime = 0;
+            placeSound.play();
+        }
+    } catch (error) {
+        console.error("Error en playPlaceSound:", error);
     }
 }
 
 // Reproduce el sonido de victoria
 function playWinSound() {
-    if (sfxEnabled) {
-        winSound.currentTime = 0;
-        winSound.play();
+    try {
+        if (sfxEnabled && winSound) {
+            winSound.currentTime = 0;
+            winSound.play();
+        }
+    } catch (error) {
+        console.error("Error en playWinSound:", error);
     }
 }
 
 // Reproduce el sonido de empate
 function playDrawSound() {
-    if (sfxEnabled) {
-        drawSound.currentTime = 0;
-        drawSound.play();
+    try {
+        if (sfxEnabled && drawSound) {
+            drawSound.currentTime = 0;
+            drawSound.play();
+        }
+    } catch (error) {
+        console.error("Error en playDrawSound:", error);
     }
 }
 
 // Reproduce el sonido de clic
 function playClickSound() {
-    if (sfxEnabled) {
-        clickSound.currentTime = 0;
-        clickSound.play();
+    try {
+        if (sfxEnabled && clickSound) {
+            clickSound.currentTime = 0;
+            clickSound.play();
+        }
+    } catch (error) {
+        console.error("Error en playClickSound:", error);
     }
 }
 
 // Reproduce la música del menú principal
 function playMainMenuBGM() {
-    if (bgmEnabled) {
-        mainMenuBGM.play();
+    try {
+        if (bgmEnabled && mainMenuBGM) {
+            mainMenuBGM.play();
+        }
+    } catch (error) {
+        console.error("Error en playMainMenuBGM:", error);
     }
 }
 
 // Detiene la música del menú principal
 function stopMainMenuBGM() {
-    mainMenuBGM.pause();
-    mainMenuBGM.currentTime = 0;
+    try {
+        if (mainMenuBGM) {
+            mainMenuBGM.pause();
+            mainMenuBGM.currentTime = 0;
+        }
+    } catch (error) {
+        console.error("Error en stopMainMenuBGM:", error);
+    }
 }
 
 // Inicializa y reproduce una canción aleatoria
 function initializeRandomSong() {
-    currentSongIndex = Math.floor(Math.random() * songs.length);
-    loadSong(currentSongIndex);
+    try {
+        currentSongIndex = Math.floor(Math.random() * songs.length);
+        loadSong(currentSongIndex);
+    } catch (error) {
+        console.error("Error en initializeRandomSong:", error);
+    }
 }
 
 // Carga y reproduce una canción por índice
 function loadSong(index) {
-    audio.src = songs[index];
-    document.getElementById('song-name').textContent = songs[index].split('/').pop();
-    audio.load();
-    if (bgmEnabled) {
-        audio.play();
-        isPlaying = true;
+    try {
+        if (songs[index]) {
+            audio.src = songs[index];
+            const songNameElement = document.getElementById('song-name');
+            if (songNameElement) {
+                songNameElement.textContent = songs[index].split('/').pop();
+            }
+            audio.load();
+            if (bgmEnabled) {
+                audio.play();
+                isPlaying = true;
+            }
+        } else {
+            console.error("Canción no encontrada en el índice:", index);
+        }
+    } catch (error) {
+        console.error("Error en loadSong:", error);
     }
 }
 
 // Cambia entre reproducir y pausar la música
 function togglePlayPause() {
-    if (isPlaying) {
-        audio.pause();
-    } else {
-        audio.play();
+    try {
+        if (isPlaying) {
+            audio.pause();
+        } else {
+            audio.play();
+        }
+        isPlaying = !isPlaying;
+    } catch (error) {
+        console.error("Error en togglePlayPause:", error);
     }
-    isPlaying = !isPlaying;
 }
 
 // Reproduce la siguiente canción
 function nextSong() {
-    currentSongIndex = (currentSongIndex + 1) % songs.length;
-    loadSong(currentSongIndex);
+    try {
+        currentSongIndex = (currentSongIndex + 1) % songs.length;
+        loadSong(currentSongIndex);
+    } catch (error) {
+        console.error("Error en nextSong:", error);
+    }
 }
 
 // Reproduce la canción anterior
 function previousSong() {
-    currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
-    loadSong(currentSongIndex);
+    try {
+        currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+        loadSong(currentSongIndex);
+    } catch (error) {
+        console.error("Error en previousSong:", error);
+    }
 }
 
 // Detiene la reproducción de música
 function stopAudio() {
-    audio.pause();
-    audio.currentTime = 0;
-    isPlaying = false;
+    try {
+        audio.pause();
+        audio.currentTime = 0;
+        isPlaying = false;
+    } catch (error) {
+        console.error("Error en stopAudio:", error);
+    }
 }
 
 // Ajusta el volumen de la música
 function setBGMVolume(volume) {
-    audio.volume = volume;
-    mainMenuBGM.volume = volume;
+    try {
+        audio.volume = volume;
+        if (mainMenuBGM) {
+            mainMenuBGM.volume = volume;
+        }
+    } catch (error) {
+        console.error("Error en setBGMVolume:", error);
+    }
 }
 
 // ==================== FUNCIONES DE TEMPORIZADOR ====================
 
 // Inicia el temporizador del juego
 function startTimer() {
-    clearInterval(timerInterval);
-    timerInterval = setInterval(() => {
-        if (!isGamePaused) {
-            const timeElapsed = Math.floor((Date.now() - gameStartTime) / 1000);
-            const minutes = Math.floor(timeElapsed / 60).toString().padStart(2, '0');
-            const seconds = (timeElapsed % 60).toString().padStart(2, '0');
-            document.getElementById('time-elapsed').textContent = `${minutes}:${seconds}`;
-        }
-    }, 1000);
+    try {
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            if (!isGamePaused) {
+                const timeElapsed = Math.floor((Date.now() - gameStartTime) / 1000);
+                const minutes = Math.floor(timeElapsed / 60).toString().padStart(2, '0');
+                const seconds = (timeElapsed % 60).toString().padStart(2, '0');
+                const timeElement = document.getElementById('time-elapsed');
+                if (timeElement) {
+                    timeElement.textContent = `${minutes}:${seconds}`;
+                } else {
+                    console.error("Elemento 'time-elapsed' no encontrado.");
+                }
+            }
+        }, 1000);
+    } catch (error) {
+        console.error("Error en startTimer:", error);
+    }
 }
 
 // ==================== FUNCIONES DE INTERFAZ DE USUARIO ====================
 
 // Muestra u oculta un elemento por su ID
 function toggleDisplay(elementId, show) {
-    document.getElementById(elementId).style.display = show ? 'block' : 'none';
+    try {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.style.display = show ? 'block' : 'none';
+        } else {
+            console.error(`Elemento '${elementId}' no encontrado.`);
+        }
+    } catch (error) {
+        console.error("Error en toggleDisplay:", error);
+    }
 }
 
 // Muestra el modal de fin de juego
 function showGameOverModal(message) {
-    document.getElementById('game-over-message').textContent = message;
-    toggleDisplay('game-over-modal', true);
+    try {
+        const messageElement = document.getElementById('game-over-message');
+        if (messageElement) {
+            messageElement.textContent = message;
+        } else {
+            console.error("Elemento 'game-over-message' no encontrado.");
+        }
+        toggleDisplay('game-over-modal', true);
+    } catch (error) {
+        console.error("Error en showGameOverModal:", error);
+    }
 }
 
 // Muestra el modal de empate
 function showDrawModal() {
-    toggleDisplay('draw-modal', true);
+    try {
+        toggleDisplay('draw-modal', true);
+    } catch (error) {
+        console.error("Error en showDrawModal:", error);
+    }
 }
 
 // Oculta todos los modales
 function hideAllModals() {
-    const modals = ['draw-modal', 'game-over-modal', 'instructions-modal', 'pause-modal', 'ai-thinking-modal'];
-    modals.forEach(modalId => toggleDisplay(modalId, false));
+    try {
+        const modals = ['draw-modal', 'game-over-modal', 'instructions-modal', 'pause-modal', 'ai-thinking-modal'];
+        modals.forEach(modalId => toggleDisplay(modalId, false));
+    } catch (error) {
+        console.error("Error en hideAllModals:", error);
+    }
 }
 
 // Muestra el modal de IA pensando
 function showAIThinkingModal() {
-    toggleDisplay('ai-thinking-modal', true);
+    try {
+        toggleDisplay('ai-thinking-modal', true);
+    } catch (error) {
+        console.error("Error en showAIThinkingModal:", error);
+    }
 }
 
 // Oculta el modal de IA pensando
 function hideAIThinkingModal() {
-    toggleDisplay('ai-thinking-modal', false);
+    try {
+        toggleDisplay('ai-thinking-modal', false);
+    } catch (error) {
+        console.error("Error en hideAIThinkingModal:", error);
+    }
 }
 
 // Muestra el modal de instrucciones
 function showInstructions() {
-    hidePauseModal();
-    toggleDisplay('instructions-modal', true);
-    playClickSound();
+    try {
+        hidePauseModal();
+        toggleDisplay('instructions-modal', true);
+        playClickSound();
+    } catch (error) {
+        console.error("Error en showInstructions:", error);
+    }
 }
 
 // Oculta el modal de instrucciones
 function hideInstructions() {
-    toggleDisplay('instructions-modal', false);
-    if (isGamePaused) {
-        showPauseModal();
+    try {
+        toggleDisplay('instructions-modal', false);
+        if (isGamePaused) {
+            showPauseModal();
+        }
+        playClickSound();
+    } catch (error) {
+        console.error("Error en hideInstructions:", error);
     }
-    playClickSound();
 }
 
 // Muestra el modal de pausa
 function showPauseModal() {
-    toggleDisplay('pause-modal', true);
+    try {
+        toggleDisplay('pause-modal', true);
+    } catch (error) {
+        console.error("Error en showPauseModal:", error);
+    }
 }
 
 // Oculta el modal de pausa
 function hidePauseModal() {
-    toggleDisplay('pause-modal', false);
+    try {
+        toggleDisplay('pause-modal', false);
+    } catch (error) {
+        console.error("Error en hidePauseModal:", error);
+    }
 }
 
 // ==================== FUNCIONES DE PAUSA Y EVENTOS ====================
 
 // Pausa el juego
 function pauseGame() {
-    if (!gameActive || isGamePaused) return;
-    isGamePaused = true;
-    clearInterval(timerInterval);
-    showPauseModal();
+    try {
+        if (!gameActive || isGamePaused) return;
+        isGamePaused = true;
+        clearInterval(timerInterval);
+        showPauseModal();
+    } catch (error) {
+        console.error("Error en pauseGame:", error);
+    }
 }
 
 // Reanuda el juego
 function resumeGame() {
-    if (!isGamePaused) return;
-    isGamePaused = false;
-    startTimer();
-    hidePauseModal();
+    try {
+        if (!isGamePaused) return;
+        isGamePaused = false;
+        startTimer();
+        hidePauseModal();
+    } catch (error) {
+        console.error("Error en resumeGame:", error);
+    }
 }
 
 // Evento para detectar teclas y pausar/reanudar el juego
 document.addEventListener('keydown', function(event) {
-    if (['Escape', 'p', 'P', ' '].includes(event.key)) {
-        if (!isGamePaused) {
-            pauseGame();
-        } else {
-            resumeGame();
+    try {
+        if (['Escape', 'p', 'P', ' '].includes(event.key)) {
+            if (!isGamePaused) {
+                pauseGame();
+            } else {
+                resumeGame();
+            }
         }
+    } catch (error) {
+        console.error("Error en eventListener de keydown:", error);
     }
 });
 
@@ -683,21 +965,34 @@ document.addEventListener('keydown', function(event) {
 
 // Anima la colocación de una ficha en una celda
 function animateCellPlacement(miniBoard, cellIndex) {
-    const cellElement = document.getElementsByClassName('mini-board')[activeBoard || 0].children[cellIndex];
-    const symbolSpan = document.createElement('span');
-    symbolSpan.textContent = currentPlayer;
-    symbolSpan.classList.add('new-symbol');
-    cellElement.appendChild(symbolSpan);
-    setTimeout(() => {
-        symbolSpan.classList.remove('new-symbol');
-    }, 500);
+    try {
+        const miniBoards = document.getElementsByClassName('mini-board');
+        const activeMiniBoard = miniBoards[activeBoard || 0];
+        if (!activeMiniBoard) return;
+        const cellElements = activeMiniBoard.children;
+        const cellElement = cellElements[cellIndex];
+        if (!cellElement) return;
+        const symbolSpan = document.createElement('span');
+        symbolSpan.textContent = currentPlayer;
+        symbolSpan.classList.add('new-symbol');
+        cellElement.appendChild(symbolSpan);
+        setTimeout(() => {
+            symbolSpan.classList.remove('new-symbol');
+        }, 500);
+    } catch (error) {
+        console.error("Error en animateCellPlacement:", error);
+    }
 }
 
 // Reinicia el estado del juego
 function resetGameState() {
-    clearInterval(timerInterval);
-    isGamePaused = false;
-    gameActive = false;
+    try {
+        clearInterval(timerInterval);
+        isGamePaused = false;
+        gameActive = false;
+    } catch (error) {
+        console.error("Error en resetGameState:", error);
+    }
 }
 
 // ==================== FIN DEL SCRIPT ====================

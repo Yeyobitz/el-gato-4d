@@ -29,6 +29,7 @@
         <div id="main-menu" class="menu">
             <div class="logo-container">
                 <h1 class="title">Multiuniversal<br/>Gato</h1>
+                <br/>
                 <h2 class="subtitle">A 4D TikTakToe by <a class="glitch" href="https://yeyobitz.dev">@Yeyobitz</a></h2> 
             </div>
             <div class="menu-options">
@@ -52,12 +53,15 @@
     <!-- Contenedor del juego -->
     <div id="game-container" style="display: none;">
         <div id="timer"><span id="time-elapsed">00:00</span></div>
+        <div id="game-info">
+            <!-- Mensaje de turno debajo del contenedor del juego -->
+            <div id="message"></div>
+        </div>
         <div id="game-content">
             <div id="board"></div>
-            <div id="game-info">
-                <!-- Mensaje de turno debajo del contenedor del juego -->
-                <div id="message"></div>
-            </div>
+        </div>
+        <div id="game-controls">
+            <button id="pause-button" onclick="pauseGame()">PAUSA</button>
         </div>
     </div>
 
@@ -93,43 +97,41 @@
 <div id="instructions-modal" class="modal">
     <div class="modal-content"><span class="close" onclick="hideInstructions()">&times;</span> 
         <h2>Multiuniversal Gato</h2>
-        <h3>Instrucciones</h3>
+    </br>
         <h3>Objetivo del Juego</h3>
-        <p>Gana tres mini-tableros en línea (horizontal, vertical o diagonal) en el tablero principal o ten más tableros ganados    .</p>
-        
+        <p>Gana tres mini-tableros en línea (horizontal, vertical o diagonal) en el tablero principal o ten más tableros ganados.</p>
+    </br>
         <h3>Cómo Jugar</h3>
         <p>El juego se desarrolla en un tablero principal con 9 mini-tableros (3x3).</p>
         <p>Dos jugadores, 'X' y 'O', se turnan para colocar sus símbolos.</p>
         <p>'X' comienza jugando en cualquier casilla de cualquier mini-tablero.</p>
-        
+            <img src="images/instrucciones1.webp" alt="Tablero principal y mini-tableros">
+        </br>
         <h3>Regla de Envío</h3>
         <p>La casilla donde juegas determina el mini-tablero donde el siguiente jugador debe jugar.</p>
         <p>Ejemplo: si juegas en la esquina superior izquierda, tu oponente debe jugar en el mini-tablero superior izquierdo.</p>
         <p>
             <img src="images/instrucciones2.webp" alt="Ejemplo de regla de envío">
         </p>
-        
-        <h3>Mini-Tableros Ocupados</h3>
-        <p>Si el mini-tablero al que te envían está lleno o ganado, puedes jugar en cualquier mini-tablero disponible.</p>
-        <p>
-            <img src="images/instrucciones5.webp" alt="Mini-tableros disponibles para jugar">
-        </p>
-        
         <h3>Ganar un Mini-Tablero</h3>
         <p>Forma tres de tus símbolos en línea en un mini-tablero para ganarlo.</p>
         <p>
             <img src="images/instrucciones3.webp" alt="Mini-tablero ganado">
         </p>
-        
+        <h3>Mini-Tableros Ocupados</h3>
+        <p>Si el mini-tablero al que te envían está lleno o ganado, puedes jugar en cualquier mini-tablero disponible.</p>
+        <p>
+            <img src="images/instrucciones5.webp" alt="Mini-tableros disponibles para jugar">
+        </p>
         <h3>Ganar el Juego</h3>
-        <p>Gana tres mini-tableros en línea en el tablero principal para vencer.</p>
+        <p>Gana tres mini-tableros en línea en el tablero principal para vencer o ten más mini-tableros controlados que tu rival</p>
         <p>
             <img src="images/instrucciones4.webp" alt="Victoria en el juego">
         </p>
         
         <h3>Controles</h3>
         <p>Haz clic en la casilla donde deseas jugar. El juego te mostrará dónde debes jugar.</p>
-        
+    </br>
         <h3>¡Diviértete!</h3>
         </div>
 </div>
@@ -137,7 +139,7 @@
 <!-- Modal de Pausa -->
 <div id="pause-modal" class="modal" style="display: none;">
     <div class="modal-content">
-        <h2>Juego en Pausa</h2>
+        <h2></h2>
         <button onclick="resumeGame()">Continuar</button>
         <button onclick="resetGame()">Reiniciar</button>
         <button onclick="backToMainMenu()">Menú</button>
@@ -154,7 +156,7 @@
                 <button onclick="nextSong()">⏭️</button>
             </div>
             
-            <p id="current-song-name">Playing: <span id="song-name">None</span></p>
+            <p id="current-song-name"><span id="song-name">None</span></p>
         </div>
         
     </div>
@@ -169,7 +171,7 @@
 
     <!-- Elementos de audio para música de fondo -->
     <audio id="bgm-main-menu" src="music/main_menu.ogg" loop></audio>
-    <audio id="bgm-game" src="music/main_game.ogg" loop></audio>
+    <audio id="bgm-game" src="" loop></audio>
     
     </div>
     <script src="script.js"></script>
