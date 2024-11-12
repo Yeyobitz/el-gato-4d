@@ -379,15 +379,246 @@ function resetGame() {
     playClickSound();
 }
 
+// Función principal de la IA mejorada
 function cpuMove() {
-    let boardIndex = activeBoard !== null ? activeBoard : getRandomBoardIndex();
-    let cellIndex = getBestMove(mainBoard[boardIndex], difficulty);
-    if (cellIndex === null) {
-        boardIndex = getRandomBoardIndex();
-        cellIndex = getBestMove(mainBoard[boardIndex], difficulty);
+    const gameState = {
+        mainBoard: mainBoard.map(board => ({
+            cells: board.cells.slice(),
+            winner: board.winner,
+        })),
+        activeBoard: activeBoard,
+        currentPlayer: currentPlayer,
+    };
+    const isMaximizingPlayer = (currentPlayer === 'O');
+    let depth;
+    switch (difficulty) {
+        case 'easy':
+            depth = 1;
+            break;
+        case 'medium':
+            depth = 2;
+            break;
+        case 'hard':
+            depth = 3;
+            break;
     }
-    handleCellClick(boardIndex, cellIndex);
+    showAIThinkingModal();
+    setTimeout(() => {
+        const result = minimaxGame(gameState, depth, -Infinity, Infinity, isMaximizingPlayer);
+        if (result.move) {
+            handleCellClick(result.move.boardIndex, result.move.cellIndex);
+        }
+        hideAIThinkingModal();
+    }, 500); // Añade un pequeño retraso para simular el pensamiento de la IA
 }
+
+// Implementación del algoritmo Minimax con poda alfa-beta
+function minimaxGame(gameState, depth, alpha, beta, isMaximizingPlayer) {
+    if (depth === 0 || isGameOver(gameState)) {
+        return { score: evaluateGameState(gameState), move: null };
+    }
+    const possibleMoves = generatePossibleMoves(gameState);
+    if (isMaximizingPlayer) {
+        let maxEval = -Infinity;
+        let bestMove = null;
+        for (const move of possibleMoves) {
+            const newGameState = applyMove(gameState, move);
+            const result = minimaxGame(newGameState, depth - 1, alpha, beta, false);
+            if (result.score > maxEval) {
+                maxEval = result.score;
+                bestMove = move;
+            }
+            alpha = Math.max(alpha, maxEval);
+            if (beta <= alpha) {
+                break;
+            }
+        }
+        return { score: maxEval, move: bestMove };
+    } else {
+        let minEval = Infinity;
+        let bestMove = null;
+        for (const move of possibleMoves) {
+            const newGameState = applyMove(gameState, move);
+            const result = minimaxGame(newGameState, depth - 1, alpha, beta, true);
+            if (result.score < minEval) {
+                minEval = result.score;
+                bestMove = move;
+            }
+            beta = Math.min(beta, minEval);
+            if (beta <= alpha) {
+                break;
+            }
+        }
+        return { score: minEval, move: bestMove };
+    }
+}
+
+
+// Generación de movimientos posibles
+function generatePossibleMoves(gameState) {
+    let moves = [];
+    if (gameState.activeBoard !== null) {
+        const boardIndex = gameState.activeBoard;
+        const board = gameState.mainBoard[boardIndex];
+        if (!board.winner && !isBoardFull(board.cells)) {
+            for (let cellIndex = 0; cellIndex < 9; cellIndex++) {
+                if (board.cells[cellIndex] === '') {
+                    moves.push({ boardIndex, cellIndex });
+                }
+            }
+            return moves;
+        } else {
+            gameState.activeBoard = null;
+        }
+    }
+    for (let boardIndex = 0; boardIndex < 9; boardIndex++) {
+        const board = gameState.mainBoard[boardIndex];
+        if (!board.winner && !isBoardFull(board.cells)) {
+            for (let cellIndex = 0; cellIndex < 9; cellIndex++) {
+                if (board.cells[cellIndex] === '') {
+                    moves.push({ boardIndex, cellIndex });
+                }
+            }
+        }
+    }
+    return moves;
+}
+
+
+
+// Aplicación de un movimiento al estado del juego
+function applyMove(gameState, move) {
+    const newGameState = {
+        mainBoard: gameState.mainBoard.map(board => ({
+            cells: board.cells.slice(),
+            winner: board.winner,
+        })),
+        activeBoard: gameState.activeBoard,
+        currentPlayer: gameState.currentPlayer,
+    };
+    const { boardIndex, cellIndex } = move;
+    const board = newGameState.mainBoard[boardIndex];
+    board.cells[cellIndex] = newGameState.currentPlayer;
+    const winner = calculateWinner(board.cells);
+    if (winner) {
+        board.winner = winner;
+    }
+    const nextActiveBoard = newGameState.mainBoard[cellIndex];
+    if (nextActiveBoard.winner || isBoardFull(nextActiveBoard.cells)) {
+        newGameState.activeBoard = null;
+    } else {
+        newGameState.activeBoard = cellIndex;
+    }
+    newGameState.currentPlayer = newGameState.currentPlayer === 'X' ? 'O' : 'X';
+    return newGameState;
+}
+
+
+// Verificación del fin del juego
+function isGameOver(gameState) {
+    const mainBoardState = gameState.mainBoard.map(board => board.winner || '');
+    const winner = calculateWinner(mainBoardState);
+    if (winner) return true;
+    if (mainBoardState.every(cell => cell !== '')) return true;
+    return false;
+}
+
+// Evaluación del estado del juego
+function evaluateGameState(gameState) {
+    const mainBoardState = gameState.mainBoard.map(board => board.winner || '');
+    const winner = calculateWinner(mainBoardState);
+    if (winner === 'O') {
+        return Infinity;
+    } else if (winner === 'X') {
+        return -Infinity;
+    } else {
+        let score = 0;
+        for (let i = 0; i < 9; i++) {
+            const board = gameState.mainBoard[i];
+            if (board.winner === 'O') {
+                score += 100;
+            } else if (board.winner === 'X') {
+                score -= 100;
+            } else {
+                score += evaluateMiniBoard(board.cells);
+            }
+        }
+        score += evaluateMainBoard(gameState);
+        return score;
+    }
+}
+
+// Evaluación de los mini-tableros
+function evaluateMiniBoard(cells) {
+    const lines = [
+        [0,1,2], [3,4,5], [6,7,8], // Filas
+        [0,3,6], [1,4,7], [2,5,8], // Columnas
+        [0,4,8], [2,4,6]           // Diagonales
+    ];
+    let score = 0;
+    for (let line of lines) {
+        let [a, b, c] = line;
+        let lineValues = [cells[a], cells[b], cells[c]];
+        score += evaluateLine(lineValues);
+    }
+    return score;
+}
+
+// Evaluación del tablero principal
+function evaluateMainBoard(gameState) {
+    const mainBoardState = gameState.mainBoard.map(board => board.winner || '');
+    const lines = [
+        [0,1,2], [3,4,5], [6,7,8], // Filas
+        [0,3,6], [1,4,7], [2,5,8], // Columnas
+        [0,4,8], [2,4,6]           // Diagonales
+    ];
+    let score = 0;
+    for (let line of lines) {
+        let [a, b, c] = line;
+        let lineValues = [mainBoardState[a], mainBoardState[b], mainBoardState[c]];
+        score += evaluateMainLine(lineValues);
+    }
+    return score;
+}
+
+function evaluateMainLine(line) {
+    let score = 0;
+    if (line.filter(cell => cell === 'O').length === 3) {
+        score += 1000;
+    } else if (line.filter(cell => cell === 'O').length === 2 && line.includes('')) {
+        score += 100;
+    } else if (line.filter(cell => cell === 'O').length === 1 && line.filter(cell => cell === '').length === 2) {
+        score += 10;
+    }
+    if (line.filter(cell => cell === 'X').length === 3) {
+        score -= 1000;
+    } else if (line.filter(cell => cell === 'X').length === 2 && line.includes('')) {
+        score -= 100;
+    } else if (line.filter(cell => cell === 'X').length === 1 && line.filter(cell => cell === '').length === 2) {
+        score -= 10;
+    }
+    return score;
+}
+
+function evaluateLine(line) {
+    let score = 0;
+    if (line.filter(cell => cell === 'O').length === 3) {
+        score += 10;
+    } else if (line.filter(cell => cell === 'O').length === 2 && line.includes('')) {
+        score += 5;
+    } else if (line.filter(cell => cell === 'O').length === 1 && line.filter(cell => cell === '').length === 2) {
+        score += 1;
+    }
+    if (line.filter(cell => cell === 'X').length === 3) {
+        score -= 10;
+    } else if (line.filter(cell => cell === 'X').length === 2 && line.includes('')) {
+        score -= 5;
+    } else if (line.filter(cell => cell === 'X').length === 1 && line.filter(cell => cell === '').length === 2) {
+        score -= 1;
+    }
+    return score;
+}
+
 
 function getRandomBoardIndex() {
     const availableBoards = mainBoard
