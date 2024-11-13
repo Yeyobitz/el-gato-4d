@@ -2,6 +2,10 @@
 
 A 4D twist on the classic Tic-Tac-Toe game, implemented in JavaScript. Challenge yourself against another player or test your skills against an AI with adjustable difficulty levels.
 
+## Try it Out
+
+You can play the game directly in your browser at [https://multiversal-gato.netlify.app/](https://multiversal-gato.netlify.app/).
+
 ## Features
 
 - **Multiplayer Mode**: Play against another human player on the same device.
