@@ -127,6 +127,10 @@ function initGame() {
         activeBoard = null;
         hideAllModals();
         gameStartTime = Date.now();
+        const timeElement = document.getElementById('time-elapsed');
+        if (timeElement) {
+            timeElement.textContent = '00:00';
+        }
         mainBoard = Array(9).fill(null).map(() => ({
             cells: Array(9).fill(''),
             winner: null
@@ -365,6 +369,7 @@ function isDrawImminent() {
 function resetGame() {
     try {
         clearInterval(timerInterval);
+        resetGameState();
         playClickSound();
         initGame();
         initializeRandomSong();
@@ -379,11 +384,11 @@ function resetGame() {
 function cpuMove() {
     try {
         showAIThinkingModal();
-        const thinkingTime = Math.random() * 1000 + 1000; // Random time between 1-2 seconds
-        
+        const thinkingTime = Math.random() * 1000 + 2000; // Random time between 2000ms - 3000ms
+
         setTimeout(() => {
             hideAIThinkingModal();
-            
+
             setTimeout(() => {
                 const gameState = {
                     mainBoard: mainBoard.map(board => ({
@@ -393,22 +398,46 @@ function cpuMove() {
                     activeBoard: activeBoard,
                     currentPlayer: currentPlayer,
                 };
-                
+
                 const isMaximizingPlayer = (currentPlayer === 'O');
                 const depth = getDepthByDifficulty();
                 const result = minimaxGame(gameState, depth, -Infinity, Infinity, isMaximizingPlayer);
-                
-                if (result.move) {
-                    handleCellClick(result.move.boardIndex, result.move.cellIndex);
+
+                let move = result.move;
+
+                if (!move) {
+                    // Si Minimax no encuentra un movimiento, seleccionar uno al azar
+                    const possibleMoves = generatePossibleMoves(gameState);
+                    if (possibleMoves.length > 0) {
+                        move = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                    } else {
+                        // No hay movimientos posibles; manejar el fin del juego
+                        if (isGameOver(gameState)) {
+                            const mainBoardState = mainBoard.map(board => board.winner || '');
+                            const winner = calculateWinner(mainBoardState);
+                            if (winner) {
+                                handleGameOver(`${winner} ha ganado el juego`);
+                            } else {
+                                handleGameOver('¡Es un empate!');
+                            }
+                        }
+                        return;
+                    }
                 }
+
+                if (move) {
+                    handleCellClick(move.boardIndex, move.cellIndex);
+                }
+
             }, 500); // 0.5 seconds delay before CPU makes its move
-            
+
         }, thinkingTime);
-        
+
     } catch (error) {
         console.error("Error en cpuMove:", error);
     }
 }
+
 
 
 // Obtiene la profundidad de búsqueda basada en la dificultad
@@ -1029,6 +1058,10 @@ function resetGameState() {
         clearInterval(timerInterval);
         isGamePaused = false;
         gameActive = false;
+        gameStartTime = null; 
+        currentPlayer = 'X';  
+        moveCount = 0;
+        activeBoard = null;   
     } catch (error) {
         console.error("Error en resetGameState:", error);
     }
