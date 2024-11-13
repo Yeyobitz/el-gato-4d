@@ -1,6 +1,8 @@
 // ==================== VARIABLES GLOBALES ====================
 
 // Estado del juego
+let pauseStartTime = null;
+let totalPausedTime = 0;
 let gameMode = '';
 let difficulty = 'medium';
 let currentPlayer = 'X';
@@ -122,6 +124,7 @@ function initGame() {
         currentPlayer = 'X';
         moveCount = 0;
         activeBoard = null;
+        hideAllModals();
         gameStartTime = Date.now();
         mainBoard = Array(9).fill(null).map(() => ({
             cells: Array(9).fill(''),
@@ -333,15 +336,16 @@ function isDrawImminent() {
     } catch (error) {
         console.error("Error en isDrawImminent:", error);
         return false;
-    }
+    
 }
-
+}
 // Reinicia el juego
 function resetGame() {
     try {
         clearInterval(timerInterval);
-        initGame();
         playClickSound();
+        initGame();
+        initializeRandomSong();
     } catch (error) {
         console.error("Error en resetGame:", error);
     }
@@ -794,14 +798,13 @@ function startTimer() {
         clearInterval(timerInterval);
         timerInterval = setInterval(() => {
             if (!isGamePaused) {
-                const timeElapsed = Math.floor((Date.now() - gameStartTime) / 1000);
+                const currentTime = Date.now();
+                const timeElapsed = Math.floor((currentTime - gameStartTime - totalPausedTime) / 1000);
                 const minutes = Math.floor(timeElapsed / 60).toString().padStart(2, '0');
                 const seconds = (timeElapsed % 60).toString().padStart(2, '0');
                 const timeElement = document.getElementById('time-elapsed');
                 if (timeElement) {
                     timeElement.textContent = `${minutes}:${seconds}`;
-                } else {
-                    console.error("Elemento 'time-elapsed' no encontrado.");
                 }
             }
         }, 1000);
@@ -809,6 +812,7 @@ function startTimer() {
         console.error("Error en startTimer:", error);
     }
 }
+
 
 // ==================== FUNCIONES DE INTERFAZ DE USUARIO ====================
 
@@ -927,6 +931,7 @@ function pauseGame() {
     try {
         if (!gameActive || isGamePaused) return;
         isGamePaused = true;
+        pauseStartTime = Date.now();
         clearInterval(timerInterval);
         showPauseModal();
     } catch (error) {
@@ -934,10 +939,12 @@ function pauseGame() {
     }
 }
 
+
 // Reanuda el juego
 function resumeGame() {
     try {
         if (!isGamePaused) return;
+        totalPausedTime += Date.now() - pauseStartTime;
         isGamePaused = false;
         startTimer();
         hidePauseModal();

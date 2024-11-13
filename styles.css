@@ -188,7 +188,6 @@ a:hover {
         box-shadow: 0 0 0 50px rgba(255, 255, 255, 0);
         outline: 10px dashed rgba(255, 255, 255, 0);
         z-index: 1;
-        border-radius: 5%;
     }
 }
 
@@ -389,7 +388,7 @@ a:hover {
 #pause-modal .modal-content {
     background-color: #111;
     color: #fff;
-    margin: 50% auto;
+    margin: 10% auto;
 }
 
 #pause-modal button {
@@ -435,16 +434,34 @@ a:hover {
 }
 
 #music-player button {
-    font-size: 24px;
-    padding: 12px;
+    font-family: monospace;
+    font-size: 20px;
+    font-weight: bold;
     background-color: #222;
     color: #fff;
     border: 2px solid #fff;
-    border-radius: 10px;
-    width: 50px;
-    height: 50px;
+    border-radius: 5px;
+    width: 40px;
+    height: 40px;
     transition: background-color 0.3s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
+
+.prev-btn::after {
+    content: "<<";
+}
+
+.play-btn::after {
+    content: "►";
+}
+
+.next-btn::after {
+    content: ">>";
+}
+
+
 
 #music-player button:hover {
     background-color: #444;
@@ -621,6 +638,10 @@ a:hover {
     
 }
 
+@media (max-width: 480px) {
+    #pause-modal .modal-content {
+        margin: 45% auto;
+    }
 /*@media (max-aspect-ratio: 1/1) {
     #game-container {
         width: 90vw;
