@@ -105,6 +105,7 @@ function backToMainMenu() {
         hideAllModals();
         toggleDisplay('game-container', false);
         toggleDisplay('main-menu', true);
+        toggleDisplay('difficulty-menu', false);
         resetGameState();
         playClickSound();
         stopAudio();
@@ -133,6 +134,7 @@ function initGame() {
         startTimer();
         drawBoard();
         updateMessage(`Turno de ${currentPlayer}`);
+        updateBodyClass(); 
     } catch (error) {
         console.error("Error en initGame:", error);
     }
@@ -148,17 +150,24 @@ function drawBoard() {
         }
         boardElement.innerHTML = '';
 
-        mainBoard.forEach((miniBoard, index) => {
+        mainBoard.forEach((miniBoard, boardIndex) => {
             const miniBoardElement = document.createElement('div');
             miniBoardElement.classList.add('mini-board');
-            if (activeBoard === index || activeBoard === null) {
+
+            // Determinar si el mini-tablero está activo
+            const isActiveBoard = activeBoard === boardIndex || activeBoard === null;
+
+            if (isActiveBoard) {
                 miniBoardElement.classList.add('active');
+            } else {
+                miniBoardElement.classList.add('locked'); 
             }
+
             if (miniBoard.winner) {
                 miniBoardElement.classList.add(`winner-${miniBoard.winner}`);
                 miniBoardElement.innerHTML = `<span>${miniBoard.winner}</span>`;
             } else {
-                drawMiniBoardCells(miniBoard, miniBoardElement, index);
+                drawMiniBoardCells(miniBoard, miniBoardElement, boardIndex, isActiveBoard);
             }
             boardElement.appendChild(miniBoardElement);
         });
@@ -167,19 +176,22 @@ function drawBoard() {
     }
 }
 
+
 // Dibuja las celdas de un mini-tablero
-function drawMiniBoardCells(miniBoard, miniBoardElement, boardIndex) {
+function drawMiniBoardCells(miniBoard, miniBoardElement, boardIndex, isActiveBoard) {
     try {
         miniBoard.cells.forEach((cell, cellIndex) => {
             const cellElement = document.createElement('div');
             cellElement.classList.add('cell');
+
             if (cell !== '') {
                 cellElement.innerHTML = `<span>${cell}</span>`;
-                cellElement.classList.add('disabled');
-            } else if (gameActive && (activeBoard === boardIndex || activeBoard === null)) {
+                cellElement.classList.add('disabled', 'locked'); // Añade 'locked' para celdas ocupadas
+            } else if (gameActive && isActiveBoard) {
+                cellElement.classList.add(`player-${currentPlayer}`); // Añade la clase del jugador
                 cellElement.addEventListener('click', () => handleCellClick(boardIndex, cellIndex));
             } else {
-                cellElement.classList.add('disabled');
+                cellElement.classList.add('disabled', 'locked'); // Añade 'locked' para celdas inactivas
             }
             miniBoardElement.appendChild(cellElement);
         });
@@ -187,6 +199,7 @@ function drawMiniBoardCells(miniBoard, miniBoardElement, boardIndex) {
         console.error("Error en drawMiniBoardCells:", error);
     }
 }
+
 
 // Maneja el evento de clic en una celda
 function handleCellClick(boardIndex, cellIndex) {
@@ -205,6 +218,7 @@ function handleCellClick(boardIndex, cellIndex) {
         animateCellPlacement(miniBoard, cellIndex);
         checkMiniBoardWinner(miniBoard, boardIndex);
         updateActiveBoard(cellIndex);
+        switchPlayer();
         drawBoard();
         checkGameWinner();
         if (!gameActive) return;
@@ -214,7 +228,6 @@ function handleCellClick(boardIndex, cellIndex) {
             showDrawModal();
             return;
         }
-        switchPlayer();
         updateMessage(`Turno de ${currentPlayer}`);
         if (gameMode === 'cpu' && currentPlayer === 'O') {
             cpuMove();
@@ -224,13 +237,22 @@ function handleCellClick(boardIndex, cellIndex) {
     }
 }
 
+
 // Cambia al siguiente jugador
 function switchPlayer() {
     try {
         currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+        updateBodyClass(); 
     } catch (error) {
         console.error("Error en switchPlayer:", error);
     }
+}
+
+// Actualiza el body según el jugador actual
+function updateBodyClass() {
+    const body = document.body;
+    body.classList.remove('player-X', 'player-O');
+    body.classList.add(`player-${currentPlayer}`);
 }
 
 // Actualiza el mensaje de estado del juego
@@ -357,27 +379,37 @@ function resetGame() {
 function cpuMove() {
     try {
         showAIThinkingModal();
+        const thinkingTime = Math.random() * 1000 + 1000; // Random time between 1-2 seconds
+        
         setTimeout(() => {
-            const gameState = {
-                mainBoard: mainBoard.map(board => ({
-                    cells: board.cells.slice(),
-                    winner: board.winner,
-                })),
-                activeBoard: activeBoard,
-                currentPlayer: currentPlayer,
-            };
-            const isMaximizingPlayer = (currentPlayer === 'O');
-            const depth = getDepthByDifficulty();
-            const result = minimaxGame(gameState, depth, -Infinity, Infinity, isMaximizingPlayer);
-            if (result.move) {
-                handleCellClick(result.move.boardIndex, result.move.cellIndex);
-            }
             hideAIThinkingModal();
-        }, 500);
+            
+            setTimeout(() => {
+                const gameState = {
+                    mainBoard: mainBoard.map(board => ({
+                        cells: board.cells.slice(),
+                        winner: board.winner,
+                    })),
+                    activeBoard: activeBoard,
+                    currentPlayer: currentPlayer,
+                };
+                
+                const isMaximizingPlayer = (currentPlayer === 'O');
+                const depth = getDepthByDifficulty();
+                const result = minimaxGame(gameState, depth, -Infinity, Infinity, isMaximizingPlayer);
+                
+                if (result.move) {
+                    handleCellClick(result.move.boardIndex, result.move.cellIndex);
+                }
+            }, 500); // 0.5 seconds delay before CPU makes its move
+            
+        }, thinkingTime);
+        
     } catch (error) {
         console.error("Error en cpuMove:", error);
     }
 }
+
 
 // Obtiene la profundidad de búsqueda basada en la dificultad
 function getDepthByDifficulty() {

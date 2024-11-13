@@ -47,6 +47,36 @@ a:hover {
     80% { transform: translate(2px, 2px); text-shadow: -2px -2px #ff0000, 2px 2px #00ff00; }
 }
 
+/* ==================== CURSORES PERSONALIZADOS ==================== */
+
+/* Cursor predeterminado para el cuerpo */
+body {
+    cursor: url('images/cursors/default_cursor.cur'), auto;
+}
+
+/* Cursor para celdas activas según el jugador */
+.cell.player-X:hover {
+    cursor: url('images/cursors/x_cursor.cur'), pointer;
+}
+
+.cell.player-O:hover {
+    cursor: url('images/cursors/o_cursor.cur'), pointer;
+}
+
+/* Cursor de bloqueo para elementos inactivos */
+.locked,
+.cell.locked:hover {
+    cursor: url('images/cursors/lock_cursor.cur'), not-allowed;
+}
+
+/* Cursor para botones */
+button,
+button:hover,
+button:focus {
+    cursor: url('images/cursors/hand_cursor.cur'), pointer;
+}
+
+
 /* ==================== CONTENEDORES PRINCIPALES ==================== */
 
 /* Contenedor principal */
@@ -99,11 +129,11 @@ a:hover {
 }
 
 .menu button {
-    font-size: 16px;
-    width: 150px;
+    font-family: 'Press Start 2P', sans-serif;
+    font-size: 13px;
+    width: 200px;
     padding: 8px 20px;
     margin: 10px;
-    cursor: pointer;
     background-color: #222;
     color: #fff;
     border: 2px solid #fff;
@@ -343,7 +373,6 @@ a:hover {
     font-size: 16px;
     padding: 10px 20px;
     margin: 10px;
-    cursor: pointer;
     background-color: #222;
     color: #fff;
     border: 2px solid #fff;
@@ -406,7 +435,6 @@ a:hover {
     font-family: 'Press Start 2P', roboto, sans-serif;
     font-size: 16px;
     padding: 10px 20px;
-    cursor: pointer;
     background-color: #222;
     color: #fff;
     border: 2px solid #fff;
