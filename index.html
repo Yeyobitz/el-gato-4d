@@ -1,15 +1,62 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <!-- Metaetiquetas esenciales -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>4D TikTakToe</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css?family=Press+Start+2P|Roboto:400,700&display=swap" rel="stylesheet">
+    <title>4D TikTakToe - Multiuniversal Gato</title>
+    <meta name="description" content="Juega al innovador 4D TikTakToe, también conocido como Gato Multiuniversal. Desafía a tus amigos o a la IA en este emocionante juego de estrategia en cuatro dimensiones.">
+    <meta name="keywords" content="4D TikTakToe, Gato Multiuniversal, juego de mesa, juego en línea, tic-tac-toe 4D, tres en raya 4D, juego de estrategia, juego multijugador, IA, inteligencia artificial">
+    <meta name="author" content="Yeyobitz">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="4D TikTakToe - Multiuniversal Gato">
+    <meta property="og:description" content="Desafía a tus amigos o a la IA en el innovador juego 4D TikTakToe. ¡Una nueva dimensión en juegos de estrategia!">
+    <meta property="og:image" content="https://multiuniversalgato.netlify.app/images/og-image.png">
+    <meta property="og:url" content="https://multiuniversalgato.netlify.app">
+    <meta property="og:type" content="website">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="4D TikTakToe - Multiuniversal Gato">
+    <meta name="twitter:description" content="Desafía a tus amigos o a la IA en el innovador juego 4D TikTakToe. ¡Una nueva dimensión en juegos de estrategia!">
+    <meta name="twitter:image" content="https://multiuniversalgato.netlify.app/images/og-image.png">
+    
+    <!-- Favicon e iconos para dispositivos -->
     <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
-    <link rel="manifest" href="/site.webmanifest">
+    <link rel="manifest" href="site.webmanifest">
+    
+    <!-- Enlaces a hojas de estilo y fuentes -->
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css?family=Press+Start+2P|Roboto:400,700&display=swap" rel="stylesheet">
+    
+    <!-- Datos estructurados Schema.org -->
+    <script type="application/ld+json">
+    {
+      "@context": "http://schema.org",
+      "@type": "WebApplication",
+      "name": "4D TikTakToe - Multiuniversal Gato",
+      "url": "https://multiuniversalgato.netlify.app",
+      "description": "Juega al innovador 4D TikTakToe, también conocido como Gato Multiuniversal. Desafía a tus amigos o a la IA en este emocionante juego de estrategia en cuatro dimensiones.",
+      "applicationCategory": "Game",
+      "operatingSystem": "All",
+      "browserRequirements": "Requires JavaScript. Compatible with modern browsers.",
+      "author": {
+        "@type": "Person",
+        "name": "Yeyobitz",
+        "url": "https://yeyobitz.dev"
+      },
+      "image": "https://multiuniversalgato.netlify.app/images/og-image.png",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "inLanguage": "es"
+    }
+    </script>
 </head>
 <body>
     <!-- Fondo de estrellas -->
@@ -82,12 +129,50 @@
     <!-- Ventana Modal para Fin de Juego -->
     <div id="game-over-modal" class="modal" style="display: none;">
         <div class="modal-content">
-            <h2 id="game-over-message">¡Juego Terminado!</h2>
-            <p id="game-over-details"></p>
-            <button onclick="resetGame()">Reiniciar</button>
-            <button onclick="backToMainMenu()">Menú</button>
+            <h2 id="game-over-title">¡Felicidades<br>Jugador!</h2>
+            <div class="statistics">
+                <p id="game-over-turns">
+                    <span class="label"><strong>Turnos</strong></span>
+                    <span class="separator">· · · · · · · · · · · · · · · · ·</span>
+                    <span class="value">0</span>
+                </p>
+                <p id="game-over-time">
+                    <span class="label"><strong>Tiempo total</strong></span>
+                    <span class="separator">· · · · · · · · · · · · · · · · ·</span>
+                    <span class="value">00:00</span>
+                </p>
+                <p id="game-over-average-time">
+                    <span class="label"><strong>Promedio por turno</strong></span>
+                    <span class="separator">· · · · · · · · · · · · · · · · ·</span>
+                    <span class="value">0s</span>
+                </p>
+                <p id="game-over-boards-x">
+                    <span class="label"><strong>Mini-boards de X</strong></span>
+                    <span class="separator">· · · · · · · · · · · · · · · · ·</span>
+                    <span class="value">0</span>
+                </p>
+                <p id="game-over-boards-o">
+                    <span class="label"><strong>Mini-boards de O</strong></span>
+                    <span class="separator">· · · · · · · · · · · · · · · · ·</span>
+                    <span class="value">0</span>
+                </p>
+            </div>
+            <!-- Mostrar dificultad si el modo es P1 vs IA -->
+            <p id="game-over-difficulty" style="display: none;">
+                <span class="label"><strong>Dificultad</strong></span>
+                <span class="separator">· · · · · · · · · · · · · · · · ·</span>
+                <span class="value">[Dificultad]</span>
+            </p>
+            <div class="modal-buttons">
+                <button onclick="resetGame()">Reiniciar</button>
+                <button onclick="backToMainMenu()">Menú</button>
+            </div>
         </div>
     </div>
+
+
+
+
 
     <!-- Ventana Modal para IA pensando -->
     <div id="ai-thinking-modal" class="modal" style="display: none;">

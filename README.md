@@ -1,5 +1,7 @@
 # Multiuniversal Gato (4D Tic-Tac-Toe)
 
+![Multiuniversal Gato](images/og-image.png)
+
 A 4D twist on the classic Tic-Tac-Toe game, implemented in JavaScript. Challenge yourself against another player or test your skills against an AI with adjustable difficulty levels.
 
 ## Try it Out

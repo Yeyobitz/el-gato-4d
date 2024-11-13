@@ -302,26 +302,43 @@ function checkGameWinner() {
         const winner = calculateWinner(mainBoardState);
 
         if (winner) {
-            handleGameOver(`${winner} ha ganado el juego`);
+            handleGameOver(winner); // Pasamos el ganador directamente
         } else if (mainBoardState.every(cell => cell !== '')) {
-            handleGameOver('¡Es un empate!');
+            handleGameOver('Empate'); // En caso de empate
         }
     } catch (error) {
         console.error("Error en checkGameWinner:", error);
     }
 }
 
+
 // Maneja el final del juego
-function handleGameOver(message) {
+function handleGameOver(winner) {
     try {
         gameActive = false;
         clearInterval(timerInterval);
         playWinSound();
-        showGameOverModal(message);
+
+        // Calcular estadísticas
+        const timeElapsed = calculateTotalTime();
+        let totalMoves = moveCount;
+        let totalTurns = moveCount;
+        if (gameMode === 'cpu') {
+            totalMoves = Math.ceil(moveCount / 2);
+            totalTurns = totalMoves;
+        }
+        const averageTimePerMove = calculateAverageTimePerMove();
+        const { boardsX, boardsO } = countWonBoards();
+
+        // Actualizar el modal con las estadísticas
+        showGameOverModal(winner, timeElapsed, totalMoves, averageTimePerMove, totalTurns, boardsX, boardsO);
     } catch (error) {
         console.error("Error en handleGameOver:", error);
     }
 }
+
+
+
 
 // Calcula si hay un ganador en un conjunto de celdas
 function calculateWinner(cells) {
@@ -416,9 +433,9 @@ function cpuMove() {
                             const mainBoardState = mainBoard.map(board => board.winner || '');
                             const winner = calculateWinner(mainBoardState);
                             if (winner) {
-                                handleGameOver(`${winner} ha ganado el juego`);
+                                handleGameOver(winner);
                             } else {
-                                handleGameOver('¡Es un empate!');
+                                handleGameOver('¡Empate!');
                             }
                         }
                         return;
@@ -874,6 +891,38 @@ function startTimer() {
     }
 }
 
+// Calcula el tiempo total transcurrido
+function calculateTotalTime() {
+    try {
+        const totalTimeInSeconds = Math.floor((Date.now() - gameStartTime - totalPausedTime) / 1000);
+        const minutes = Math.floor(totalTimeInSeconds / 60).toString().padStart(2, '0');
+        const seconds = (totalTimeInSeconds % 60).toString().padStart(2, '0');
+        return `${minutes}:${seconds}`;
+    } catch (error) {
+        console.error("Error en calculateTotalTime:", error);
+        return '00:00';
+    }
+}
+
+// Calcula el tiempo promedio por movimiento
+function calculateAverageTimePerMove() {
+    try {
+        const totalTimeInSeconds = Math.floor((Date.now() - gameStartTime - totalPausedTime) / 1000);
+        let moves = moveCount;
+        if (gameMode === 'cpu') {
+            moves = Math.ceil(moveCount / 2); // Solo los turnos del jugador humano
+        }
+        if (moves === 0) return '0s';
+        const averageTime = (totalTimeInSeconds / moves).toFixed(1);
+        return `${averageTime}s`;
+    } catch (error) {
+        console.error("Error en calculateAverageTimePerMove:", error);
+        return '0s';
+    }
+}
+
+
+
 
 // ==================== FUNCIONES DE INTERFAZ DE USUARIO ====================
 
@@ -892,19 +941,55 @@ function toggleDisplay(elementId, show) {
 }
 
 // Muestra el modal de fin de juego
-function showGameOverModal(message) {
+function showGameOverModal(winner, timeElapsed, totalMoves, averageTimePerMove, totalTurns, boardsX, boardsO) {
     try {
-        const messageElement = document.getElementById('game-over-message');
-        if (messageElement) {
-            messageElement.textContent = message;
-        } else {
-            console.error("Elemento 'game-over-message' no encontrado.");
+        const titleElement = document.getElementById('game-over-title');
+        if (titleElement) {
+            if (winner === 'Empate') {
+                titleElement.textContent = '¡Es un empate!';
+            } else if (gameMode === 'cpu' && winner === 'O') {
+                titleElement.textContent = '¡Perdiste!';
+            } else if (gameMode === 'cpu' && winner === 'X') {
+                titleElement.textContent = '¡Ganaste!';
+            } else {
+                titleElement.textContent = `¡Felicidades, ${winner}!`;
+            }
         }
+
+        // Actualizar estadísticas
+        updateModalStatistic('game-over-turns', totalTurns);
+        updateModalStatistic('game-over-time', timeElapsed);
+        updateModalStatistic('game-over-average-time', averageTimePerMove);
+        updateModalStatistic('game-over-boards-x', boardsX);
+        updateModalStatistic('game-over-boards-o', boardsO);
+
+        // Mostrar dificultad si el modo es P1 vs IA
+        const difficultyElement = document.getElementById('game-over-difficulty');
+        if (gameMode === 'cpu' && difficultyElement) {
+            difficultyElement.style.display = 'flex';
+            difficultyElement.querySelector('.value').textContent = capitalizeFirstLetter(difficulty);
+        } else if (difficultyElement) {
+            difficultyElement.style.display = 'none';
+        }
+
         toggleDisplay('game-over-modal', true);
     } catch (error) {
         console.error("Error en showGameOverModal:", error);
     }
 }
+
+// Actualiza un elemento de estadística en el modal de fin de juego
+function updateModalStatistic(elementId, value) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        const valueElement = element.querySelector('.value');
+        if (valueElement) {
+            valueElement.textContent = value;
+        }
+    }
+}
+
+
 
 // Muestra el modal de empate
 function showDrawModal() {
@@ -1066,5 +1151,29 @@ function resetGameState() {
         console.error("Error en resetGameState:", error);
     }
 }
+
+
+// Contar las celdas marcadas con X y O en el tablero principal
+function countWonBoards() {
+    try {
+        let boardsX = 0;
+        let boardsO = 0;
+        mainBoard.forEach(miniBoard => {
+            if (miniBoard.winner === 'X') boardsX++;
+            if (miniBoard.winner === 'O') boardsO++;
+        });
+        return { boardsX, boardsO };
+    } catch (error) {
+        console.error("Error en countWonBoards:", error);
+        return { boardsX: 0, boardsO: 0 };
+    }
+}
+
+// Función para capitalizar la primera letra de una cadena
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+
 
 // ==================== FIN DEL SCRIPT ====================
