@@ -4,7 +4,7 @@ A 4D twist on the classic Tic-Tac-Toe game, implemented in JavaScript. Challenge
 
 ## Try it Out
 
-You can play the game directly in your browser at [https://multiversal-gato.netlify.app/](https://multiversal-gato.netlify.app/).
+You can play the game directly in your browser at [https://multiuniversalgato.netlify.app/](https://multiuniversalgato.netlify.app/).
 
 ## Features
 
