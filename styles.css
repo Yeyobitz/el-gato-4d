@@ -752,12 +752,55 @@ button:focus {
         margin-top: -60px;
         margin-bottom: 20px;
     }
-    
+
+    #game-over-modal {
+        margin-top: 30%;
+    }
+    #game-over-modal .statistics p,
+    #game-over-difficulty {
+        font-size: 12px;
+        margin: 4px 0;
+    }
+
+    #game-over-modal .separator {
+        display: none;
+    }
+
+    #game-over-modal .statistics p,
+    #game-over-difficulty {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    #game-over-modal .label,
+    #game-over-modal .value {
+        width: 100%;
+        text-align: center;
+    }
+
+    #game-over-modal h2 {
+        font-size: 20px;
+    }
+
+    #game-over-modal .modal-buttons button {
+        font-size: 12px;
+        padding: 8px 16px;
+    }
+
+    #game-over-modal .modal-content {
+        margin: 10% auto;
+        padding: 15px;
+        width: 90%;
+    }
 }
 
 @media (max-width: 480px) {
     #pause-modal .modal-content {
         margin: 45% auto;
+    }
+    #game-over-modal .modal-content {
+        margin: 5% auto;
     }
 }
 
