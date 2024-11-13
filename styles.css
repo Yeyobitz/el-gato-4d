@@ -413,18 +413,22 @@ button:focus {
 }
 
 /* ==================== MODAL DE PAUSA ==================== */
+  #pause-modal .modal-content {
+      background-color: #111;
+      color: #fff;
+      margin: 10% auto;
+      overflow-x: hidden;
+  }
 
-#pause-modal .modal-content {
-    background-color: #111;
-    color: #fff;
-    margin: 10% auto;
-}
+  #pause-modal button {
+      width: 200px;
+      margin: 10px 0;
+  }
 
-#pause-modal button {
-    width: 200px;
-    margin: 10px 0;
-}
-
+  #music-player {
+      width: 100%;
+      overflow-x: hidden;
+  }
 /* Estilos para el contenedor del botón de pausa */
 #game-controls {
     margin-top: 1px;
@@ -793,6 +797,26 @@ button:focus {
         padding: 15px;
         width: 90%;
     }
+    #draw-modal .modal-content {
+        margin: 30% auto;
+        padding: 15px;
+        width: 90%;
+    }
+
+    #draw-modal h2 {
+        font-size: 20px;
+    }
+
+    #draw-modal p {
+        font-size: 14px;
+    }
+
+    #draw-modal button {
+        font-size: 12px;
+        padding: 8px 16px;
+        width: 80%;
+        margin: 5px auto;
+    }
 }
 
 @media (max-width: 480px) {
@@ -802,13 +826,30 @@ button:focus {
     #game-over-modal {
         margin-top: 20%;
     }
+    #draw-modal .modal-content {
+        margin: 40% auto;
+    }
+
 }
 
-/*@media (max-aspect-ratio: 1/1) {
-    #game-container {
-        width: 90vw;
-        height: 90vw;
-    }
-    
+/* ==================== ANIMACIONES Y EFECTOS ==================== */
+
+.last-symbol {
+    color: red;
+    transition: color 0.3s ease;
+    /* Otros efectos como text-shadow */
+    text-shadow: 0 0 10px red;
 }
-    */
+
+#current-song-name {
+    font-size: 16px;
+    color: #ccc;
+    margin-top: 10px;
+    transition: transform 0.3s, text-shadow 0.3s;
+}
+
+#current-song-name:hover {
+    transform: scale(1.1);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+    color: #fff;
+}

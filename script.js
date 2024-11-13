@@ -13,6 +13,7 @@ let isGamePaused = false;
 let moveCount = 0;
 let gameStartTime = null;
 let timerInterval = null;
+let lastPlacedElement = null;
 
 // Configuración de audio
 let sfxEnabled = true;
@@ -446,7 +447,7 @@ function cpuMove() {
                     handleCellClick(move.boardIndex, move.cellIndex);
                 }
 
-            }, 500); // 0.5 seconds delay before CPU makes its move
+            }, 100); // 0.1 seconds delay before CPU makes its move
 
         }, thinkingTime);
 
@@ -796,7 +797,9 @@ function loadSong(index) {
             audio.src = songs[index];
             const songNameElement = document.getElementById('song-name');
             if (songNameElement) {
-                songNameElement.textContent = songs[index].split('/').pop();
+                // Remove path and .ogg extension from song name
+                const songName = songs[index].split('/').pop().replace('.ogg', '');
+                songNameElement.textContent = songName;
             }
             audio.load();
             if (bgmEnabled) {
@@ -810,6 +813,7 @@ function loadSong(index) {
         console.error("Error en loadSong:", error);
     }
 }
+
 
 // Cambia entre reproducir y pausar la música
 function togglePlayPause() {
@@ -1128,6 +1132,14 @@ function animateCellPlacement(miniBoard, cellIndex) {
         const symbolSpan = document.createElement('span');
         symbolSpan.textContent = currentPlayer;
         symbolSpan.classList.add('new-symbol');
+        
+        // Gestionar el resaltado del último símbolo
+        if (lastPlacedElement) {
+            lastPlacedElement.classList.remove('last-symbol');
+        }
+        symbolSpan.classList.add('last-symbol');
+        lastPlacedElement = symbolSpan;
+        
         cellElement.appendChild(symbolSpan);
         setTimeout(() => {
             symbolSpan.classList.remove('new-symbol');
@@ -1136,6 +1148,7 @@ function animateCellPlacement(miniBoard, cellIndex) {
         console.error("Error en animateCellPlacement:", error);
     }
 }
+
 
 // Reinicia el estado del juego
 function resetGameState() {
@@ -1147,6 +1160,10 @@ function resetGameState() {
         currentPlayer = 'X';  
         moveCount = 0;
         activeBoard = null;   
+        if (lastPlacedElement) {
+            lastPlacedElement.classList.remove('last-symbol');
+            lastPlacedElement = null;
+        }
     } catch (error) {
         console.error("Error en resetGameState:", error);
     }
