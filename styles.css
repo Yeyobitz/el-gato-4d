@@ -754,7 +754,7 @@ button:focus {
     }
 
     #game-over-modal {
-        margin-top: 30%;
+        margin-top: 5%;
     }
     #game-over-modal .statistics p,
     #game-over-difficulty {
@@ -799,8 +799,8 @@ button:focus {
     #pause-modal .modal-content {
         margin: 45% auto;
     }
-    #game-over-modal .modal-content {
-        margin: 5% auto;
+    #game-over-modal {
+        margin-top: 20%;
     }
 }
 
