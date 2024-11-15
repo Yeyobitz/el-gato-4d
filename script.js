@@ -15,6 +15,58 @@ let gameStartTime = null;
 let timerInterval = null;
 let lastPlacedElement = null;
 
+// Estadisticas del jugador
+let playerStats = {
+    p1_vs_ai: {
+        easy: {
+            gamesPlayed: 0,
+            wins: 0,
+            losses: 0,
+            draws: 0,
+            bestTime: null,
+            winStreak: 0,
+            bestWinStreak: 0,
+            totalMoves: 0,
+            totalTime: 0,
+        },
+        medium: {
+            // Mismos campos que easy
+            gamesPlayed: 0,
+            wins: 0,
+            losses: 0,
+            draws: 0,
+            bestTime: null,
+            winStreak: 0,
+            bestWinStreak: 0,
+            totalMoves: 0,
+            totalTime: 0,
+        },
+        hard: {
+            // Mismos campos que easy
+            gamesPlayed: 0,
+            wins: 0,
+            losses: 0,
+            draws: 0,
+            bestTime: null,
+            winStreak: 0,
+            bestWinStreak: 0,
+            totalMoves: 0,
+            totalTime: 0,
+        }
+    },
+    p1_vs_p2: {
+        gamesPlayed: 0,
+        winsX: 0,
+        winsO: 0,
+        draws: 0,
+        longestGameMoves: 0,
+        highestBoardsWon: 0,
+        totalMoves: 0,
+        totalTime: 0,
+    }
+};
+
+
 // Configuración de audio
 let sfxEnabled = true;
 let bgmEnabled = true;
@@ -42,8 +94,22 @@ let clickSound;
 // Se ejecuta cuando la ventana se ha cargado completamente
 window.onload = function() {
     setupAudioElements();
+    loadPlayerStats();
     playMainMenuBGM();
 };
+
+// Función para cargar estadísticas desde localStorage
+function loadPlayerStats() {
+    const stats = JSON.parse(localStorage.getItem('playerStats'));
+    if (stats) {
+        playerStats = stats;
+    }
+}
+
+// Función para guardar estadísticas en localStorage
+function savePlayerStats() {
+    localStorage.setItem('playerStats', JSON.stringify(playerStats));
+}
 
 // Configura los elementos de audio
 function setupAudioElements() {
@@ -65,6 +131,34 @@ function setupAudioElements() {
         console.error("Error en setupAudioElements:", error);
     }
 }
+
+// ==================== FUNCIONES DE GUARDADO Y CARGA ====================
+
+// Guardar estadísticas en localStorage
+function savePlayerStats() {
+    localStorage.setItem('playerStats', JSON.stringify(playerStats));
+}
+
+
+// Función para reiniciar las estadísticas del jugador
+function resetPlayerStats() {
+    if (confirm('¿Estás seguro de que deseas reiniciar tus estadísticas? Esta acción no se puede deshacer.')) {
+        playerStats = {
+            gamesPlayed: 0,
+            wins: 0,
+            losses: 0,
+            draws: 0,
+            bestTime: null,
+            winStreak: 0,
+            bestWinStreak: 0,
+            totalMoves: 0,
+            totalTime: 0,
+        };
+        savePlayerStats();
+        alert('Tus estadísticas han sido reiniciadas.');
+    }
+}
+
 
 // ==================== FUNCIONES DE NAVEGACIÓN Y MENÚ ====================
 
@@ -320,24 +414,83 @@ function handleGameOver(winner) {
         clearInterval(timerInterval);
         playWinSound();
 
-        // Calcular estadísticas
-        const timeElapsed = calculateTotalTime();
+        // Calcular estadísticas de la partida actual
+        const timeElapsedInSeconds = calculateTotalTimeInSeconds(); // Obtener tiempo en segundos
         let totalMoves = moveCount;
-        let totalTurns = moveCount;
-        if (gameMode === 'cpu') {
-            totalMoves = Math.ceil(moveCount / 2);
-            totalTurns = totalMoves;
-        }
-        const averageTimePerMove = calculateAverageTimePerMove();
+
+        // Obtener el conteo de mini-tableros ganados por cada jugador
         const { boardsX, boardsO } = countWonBoards();
 
-        // Actualizar el modal con las estadísticas
-        showGameOverModal(winner, timeElapsed, totalMoves, averageTimePerMove, totalTurns, boardsX, boardsO);
+        // Actualizar estadísticas según el modo de juego
+        if (gameMode === 'cpu') {
+            let stats = playerStats.p1_vs_ai[difficulty];
+
+            stats.gamesPlayed++;
+            stats.totalMoves += totalMoves;
+            stats.totalTime += timeElapsedInSeconds;
+
+            if (winner === 'Empate') {
+                stats.draws++;
+                stats.winStreak = 0;
+            } else if (winner === 'X') {
+                // El jugador gana
+                stats.wins++;
+                stats.winStreak++;
+                if (stats.winStreak > stats.bestWinStreak) {
+                    stats.bestWinStreak = stats.winStreak;
+                }
+                // Actualizar mejor tiempo si es la partida ganada más rápida
+                if (!stats.bestTime || timeElapsedInSeconds < stats.bestTime) {
+                    stats.bestTime = timeElapsedInSeconds;
+                }
+            } else {
+                // El jugador pierde
+                stats.losses++;
+                stats.winStreak = 0;
+            }
+        } else if (gameMode === 'pvp') {
+            let stats = playerStats.p1_vs_p2;
+
+            stats.gamesPlayed++;
+            stats.totalMoves += totalMoves;
+            stats.totalTime += timeElapsedInSeconds;
+
+            if (winner === 'Empate') {
+                stats.draws++;
+            } else if (winner === 'X') {
+                stats.winsX++;
+            } else if (winner === 'O') {
+                stats.winsO++;
+            }
+
+            // Actualizar partida más larga
+            if (totalMoves > stats.longestGameMoves) {
+                stats.longestGameMoves = totalMoves;
+            }
+
+            // Actualizar mayor número de mini-tableros ganados
+            const totalBoardsWon = boardsX + boardsO;
+            if (totalBoardsWon > stats.highestBoardsWon) {
+                stats.highestBoardsWon = totalBoardsWon;
+            }
+        }
+
+        savePlayerStats();
+
+        // Mostrar estadísticas en el modal
+        showGameOverModal(
+            winner,
+            formatTime(timeElapsedInSeconds),
+            totalMoves,
+            calculateAverageTimePerMove(),
+            totalMoves,
+            boardsX,
+            boardsO
+        );
     } catch (error) {
         console.error("Error en handleGameOver:", error);
     }
 }
-
 
 
 
@@ -895,26 +1048,32 @@ function startTimer() {
     }
 }
 
-// Calcula el tiempo total transcurrido
-function calculateTotalTime() {
+// Formatea el tiempo en segundos a mm:ss
+function formatTime(seconds) {
+    const minutes = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const secs = (seconds % 60).toString().padStart(2, '0');
+    return `${minutes}:${secs}`;
+}
+
+
+// Calcula el tiempo total transcurrido en segundos
+function calculateTotalTimeInSeconds() {
     try {
         const totalTimeInSeconds = Math.floor((Date.now() - gameStartTime - totalPausedTime) / 1000);
-        const minutes = Math.floor(totalTimeInSeconds / 60).toString().padStart(2, '0');
-        const seconds = (totalTimeInSeconds % 60).toString().padStart(2, '0');
-        return `${minutes}:${seconds}`;
+        return totalTimeInSeconds;
     } catch (error) {
-        console.error("Error en calculateTotalTime:", error);
-        return '00:00';
+        console.error("Error en calculateTotalTimeInSeconds:", error);
+        return 0;
     }
 }
 
 // Calcula el tiempo promedio por movimiento
 function calculateAverageTimePerMove() {
     try {
-        const totalTimeInSeconds = Math.floor((Date.now() - gameStartTime - totalPausedTime) / 1000);
+        const totalTimeInSeconds = calculateTotalTimeInSeconds();
         let moves = moveCount;
         if (gameMode === 'cpu') {
-            moves = Math.ceil(moveCount / 2); // Solo los turnos del jugador humano
+            moves = Math.ceil(moveCount / 2);
         }
         if (moves === 0) return '0s';
         const averageTime = (totalTimeInSeconds / moves).toFixed(1);
@@ -924,7 +1083,6 @@ function calculateAverageTimePerMove() {
         return '0s';
     }
 }
-
 
 
 
@@ -944,23 +1102,19 @@ function toggleDisplay(elementId, show) {
     }
 }
 
-// Muestra el modal de fin de juego
+// Muestra el modal de fin de juego y actualiza las estadísticas
 function showGameOverModal(winner, timeElapsed, totalMoves, averageTimePerMove, totalTurns, boardsX, boardsO) {
     try {
         const titleElement = document.getElementById('game-over-title');
         if (titleElement) {
             if (winner === 'Empate') {
                 titleElement.textContent = '¡Es un empate!';
-            } else if (gameMode === 'cpu' && winner === 'O') {
-                titleElement.textContent = '¡Perdiste!';
-            } else if (gameMode === 'cpu' && winner === 'X') {
-                titleElement.textContent = '¡Ganaste!';
             } else {
                 titleElement.textContent = `¡Felicidades, ${winner}!`;
             }
         }
 
-        // Actualizar estadísticas
+        // Actualizar estadísticas de la partida
         updateModalStatistic('game-over-turns', totalTurns);
         updateModalStatistic('game-over-time', timeElapsed);
         updateModalStatistic('game-over-average-time', averageTimePerMove);
@@ -976,13 +1130,46 @@ function showGameOverModal(winner, timeElapsed, totalMoves, averageTimePerMove, 
             difficultyElement.style.display = 'none';
         }
 
+        // Mostrar botón para alternar entre contenido y estadísticas
+        const toggleStatsButton = document.getElementById('toggle-stats-button');
+        if (toggleStatsButton) {
+            toggleStatsButton.style.display = 'block';
+            toggleStatsButton.onclick = toggleGameOverStats;
+        }
+
+        // Inicialmente, mostrar el contenido del juego
+        showGameOverContent();
+
         toggleDisplay('game-over-modal', true);
     } catch (error) {
         console.error("Error en showGameOverModal:", error);
     }
 }
 
-// Actualiza un elemento de estadística en el modal de fin de juego
+// Función para alternar entre el contenido y las estadísticas en el modal de fin de juego
+function toggleGameOverStats() {
+    const statsContainer = document.getElementById('game-over-stats');
+    const contentContainer = document.getElementById('game-over-content');
+    const toggleButton = document.getElementById('toggle-stats-button');
+
+    if (statsContainer.style.display === 'none') {
+        showGameOverStats();
+        toggleButton.textContent = 'Ver Resumen de Partida';
+    } else {
+        showGameOverContent();
+        toggleButton.textContent = 'Ver Estadísticas Generales';
+    }
+}
+
+// Función para mostrar el contenido del juego en el modal
+function showGameOverContent() {
+    const statsContainer = document.getElementById('game-over-stats');
+    const contentContainer = document.getElementById('game-over-content');
+    statsContainer.style.display = 'none';
+    contentContainer.style.display = 'block';
+}
+
+// Función para actualizar un elemento de estadística en el modal
 function updateModalStatistic(elementId, value) {
     const element = document.getElementById(elementId);
     if (element) {
@@ -991,6 +1178,57 @@ function updateModalStatistic(elementId, value) {
             valueElement.textContent = value;
         }
     }
+}
+
+// Función para mostrar las estadísticas en el modal
+function showGameOverStats() {
+    const statsContainer = document.getElementById('game-over-stats');
+    const contentContainer = document.getElementById('game-over-content');
+    statsContainer.style.display = 'block';
+    contentContainer.style.display = 'none';
+
+    // Actualizar estadísticas generales según el modo
+    const overallStatsContainer = statsContainer.querySelector('.overall-statistics');
+    overallStatsContainer.innerHTML = ''; // Limpiar contenido anterior
+
+    if (gameMode === 'cpu') {
+        const stats = playerStats.p1_vs_ai[difficulty];
+
+        overallStatsContainer.innerHTML += `<h3>P1 vs IA - ${capitalizeFirstLetter(difficulty)}</h3>`;
+        overallStatsContainer.innerHTML += generateStatisticLine('Partidas Jugadas', stats.gamesPlayed);
+        overallStatsContainer.innerHTML += generateStatisticLine('Victorias', stats.wins);
+        overallStatsContainer.innerHTML += generateStatisticLine('Derrotas', stats.losses);
+        overallStatsContainer.innerHTML += generateStatisticLine('Empates', stats.draws);
+
+        const winPercentage = stats.gamesPlayed > 0 ? ((stats.wins / stats.gamesPlayed) * 100).toFixed(2) + '%' : '0%';
+        overallStatsContainer.innerHTML += generateStatisticLine('% de Victorias', winPercentage);
+
+        const bestTime = stats.bestTime ? formatTime(stats.bestTime) : 'N/A';
+        overallStatsContainer.innerHTML += generateStatisticLine('Mejor Tiempo', bestTime);
+
+        overallStatsContainer.innerHTML += generateStatisticLine('Mejor Racha', stats.bestWinStreak);
+    } else if (gameMode === 'pvp') {
+        const stats = playerStats.p1_vs_p2;
+
+        overallStatsContainer.innerHTML += `<h3>P1 vs P2</h3>`;
+        overallStatsContainer.innerHTML += generateStatisticLine('Partidas Jugadas', stats.gamesPlayed);
+        overallStatsContainer.innerHTML += generateStatisticLine('Victorias de X', stats.winsX);
+        overallStatsContainer.innerHTML += generateStatisticLine('Victorias de O', stats.winsO);
+        overallStatsContainer.innerHTML += generateStatisticLine('Empates', stats.draws);
+        overallStatsContainer.innerHTML += generateStatisticLine('Partida más Larga (Movimientos)', stats.longestGameMoves);
+        overallStatsContainer.innerHTML += generateStatisticLine('Mayor número de Mini-Tableros Ganados', stats.highestBoardsWon);
+    }
+}
+
+
+// Genera una línea de estadística en formato HTML
+function generateStatisticLine(label, value) {
+    return `
+    <p>
+        <span class="label"><strong>${label}</strong></span>
+        <span class="separator">· · · · · · ·</span>
+        <span class="value">${value}</span>
+    </p>`;
 }
 
 
@@ -1170,7 +1408,7 @@ function resetGameState() {
 }
 
 
-// Contar las celdas marcadas con X y O en el tablero principal
+// Función para contar los mini-tableros ganados por cada jugador
 function countWonBoards() {
     try {
         let boardsX = 0;
@@ -1191,6 +1429,59 @@ function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
+// Función para mostrar el modal de estadísticas generales desde el menú principal
+function showGeneralStats() {
+    // Ocultar otros menús
+    toggleDisplay('main-menu', false);
+    toggleDisplay('difficulty-menu', false);
 
+    // Mostrar el modal de estadísticas generales
+    toggleDisplay('general-stats-modal', true);
+
+    // Mostrar estadísticas de ambos modos
+    showOverallStats();
+}
+
+// Función para mostrar las estadísticas generales
+function showOverallStats() {
+    const overallStatsContainer = document.querySelector('#general-stats-modal .overall-statistics');
+    overallStatsContainer.innerHTML = ''; // Limpiar contenido anterior
+
+    // Actualizar estadísticas de P1 vs IA por dificultad
+    ['easy', 'medium', 'hard'].forEach(diff => {
+        const stats = playerStats.p1_vs_ai[diff];
+
+        overallStatsContainer.innerHTML += `<h3>P1 vs IA - ${capitalizeFirstLetter(diff)}</h3>`;
+        overallStatsContainer.innerHTML += generateStatisticLine('Partidas Jugadas', stats.gamesPlayed);
+        overallStatsContainer.innerHTML += generateStatisticLine('Victorias', stats.wins);
+        overallStatsContainer.innerHTML += generateStatisticLine('Derrotas', stats.losses);
+        overallStatsContainer.innerHTML += generateStatisticLine('Empates', stats.draws);
+
+        const winPercentage = stats.gamesPlayed > 0 ? ((stats.wins / stats.gamesPlayed) * 100).toFixed(2) + '%' : '0%';
+        overallStatsContainer.innerHTML += generateStatisticLine('% de Victorias', winPercentage);
+
+        const bestTime = stats.bestTime ? formatTime(stats.bestTime) : 'N/A';
+        overallStatsContainer.innerHTML += generateStatisticLine('Mejor Tiempo', bestTime);
+
+        overallStatsContainer.innerHTML += generateStatisticLine('Mejor Racha', stats.bestWinStreak);
+    });
+
+    // Actualizar estadísticas de P1 vs P2
+    const statsPVP = playerStats.p1_vs_p2;
+
+    overallStatsContainer.innerHTML += `<h3>P1 vs P2</h3>`;
+    overallStatsContainer.innerHTML += generateStatisticLine('Partidas Jugadas', statsPVP.gamesPlayed);
+    overallStatsContainer.innerHTML += generateStatisticLine('Victorias de X', statsPVP.winsX);
+    overallStatsContainer.innerHTML += generateStatisticLine('Victorias de O', statsPVP.winsO);
+    overallStatsContainer.innerHTML += generateStatisticLine('Empates', statsPVP.draws);
+    overallStatsContainer.innerHTML += generateStatisticLine('Partida más Larga (Movimientos)', statsPVP.longestGameMoves);
+    overallStatsContainer.innerHTML += generateStatisticLine('Mayor número de Mini-Tableros Ganados', statsPVP.highestBoardsWon);
+}
+
+// Función para cerrar el modal de estadísticas generales
+function closeGeneralStats() {
+    toggleDisplay('general-stats-modal', false);
+    toggleDisplay('main-menu', true);
+}
 
 // ==================== FIN DEL SCRIPT ====================

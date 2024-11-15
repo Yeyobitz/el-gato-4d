@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>4D TikTakToe - Multiuniversal Gato</title>
     <meta name="description" content="Juega al innovador 4D TikTakToe, también conocido como Gato Multiuniversal. Desafía a tus amigos o a la IA en este emocionante juego de estrategia en cuatro dimensiones.">
-    <meta name="keywords" content="4D TikTakToe, Gato Multiuniversal, juego de mesa, juego en línea, tic-tac-toe 4D, tres en raya 4D, juego de estrategia, juego multijugador, IA, inteligencia artificial">
+    <meta name="keywords" content="4D TikTakToe, Gato Multiuniversal, juego de mesa, juego en línea, tic-tac-toe 4D, tres en raya 4D, juego de estrategia, juego multijugador, IA, inteligencia artificial, Ceros y Cruces, Tres en Línea, Tatetí, Triqui, La Vieja, Michi, Totito, Equis Cero, Gato 4D, OXO, Noughts and Crosses, Jogo da Velha, Jogo do Galo, Zero o Cruz, XOXO, Morpion, Ta Te Ti, Cat's Game, Quantum TicTacToe, Multidimensional TicTacToe">
     <meta name="author" content="Yeyobitz">
     
     <!-- Open Graph Meta Tags -->
@@ -86,6 +86,7 @@
                 <button onclick="showDifficulty('cpu')">P1 vs CPU</button>
                 <button onclick="startGame('pvp')">P1 vs P2</button>
                 <button id="instructions-button" onclick="showInstructions()">Reglas</button>
+                <button onclick="showGeneralStats()">Estadísticas</button>
             </div>
         </div>
 
@@ -131,49 +132,71 @@
     <!-- Ventana Modal para Fin de Juego -->
     <div id="game-over-modal" class="modal" style="display: none;">
         <div class="modal-content">
-            <h2 id="game-over-title">¡Felicidades<br>Jugador!</h2>
-            <div class="statistics">
-                <p id="game-over-turns">
-                    <span class="label"><strong>Turnos</strong></span>
-                    <span class="separator">· · · · · · ·</span>
-                    <span class="value">0</span>
-                </p>
-                <p id="game-over-time">
-                    <span class="label"><strong>Tiempo total</strong></span>
-                    <span class="separator">· · · · · · ·</span>
-                    <span class="value">00:00</span>
-                </p>
-                <p id="game-over-average-time">
-                    <span class="label"><strong>Promedio por turno</strong></span>
-                    <span class="separator">· · · · · · ·</span>
-                    <span class="value">0s</span>
-                </p>
-                <p id="game-over-boards-x">
-                    <span class="label"><strong>Mini-boards de X</strong></span>
-                    <span class="separator">· · · · · · · ·</span>
-                    <span class="value">0</span>
-                </p>
-                <p id="game-over-boards-o">
-                    <span class="label"><strong>Mini-boards de O</strong></span>
-                    <span class="separator">· · · · · · · ·</span>
-                    <span class="value">0</span>
-                </p>
+
+            <!-- Contenedor del resumen de partida -->
+            <div id="game-over-content">
+                <h2 id="game-over-title">¡Felicidades<br>Jugador!</h2>
+                <div class="statistics">
+                    <p id="game-over-turns">
+                        <span class="label"><strong>Turnos</strong></span>
+                        <span class="separator">· · · · · · ·</span>
+                        <span class="value">0</span>
+                    </p>
+                    <p id="game-over-time">
+                        <span class="label"><strong>Tiempo total</strong></span>
+                        <span class="separator">· · · · · · ·</span>
+                        <span class="value">00:00</span>
+                    </p>
+                    <p id="game-over-average-time">
+                        <span class="label"><strong>Promedio por turno</strong></span>
+                        <span class="separator">· · · · · · ·</span>
+                        <span class="value">0s</span>
+                    </p>
+                    <p id="game-over-boards-x">
+                        <span class="label"><strong>Mini-boards de X</strong></span>
+                        <span class="separator">· · · · · · · ·</span>
+                        <span class="value">0</span>
+                    </p>
+                    <p id="game-over-boards-o">
+                        <span class="label"><strong>Mini-boards de O</strong></span>
+                        <span class="separator">· · · · · · · ·</span>
+                        <span class="value">0</span>
+                    </p>
+                    <!-- Mostrar dificultad si el modo es P1 vs IA -->
+                    <p id="game-over-difficulty" style="display: none;">
+                        <span class="label"><strong>Dificultad</strong></span>
+                        <span class="separator">· · · · · · ·</span>
+                        <span class="value">[Dificultad]</span>
+                    </p>
+                </div>
             </div>
-            <!-- Mostrar dificultad si el modo es P1 vs IA -->
-            <p id="game-over-difficulty" style="display: none;">
-                <span class="label"><strong>Dificultad</strong></span>
-                <span class="separator">· · · · · · ·</span>
-                <span class="value">[Dificultad]</span>
-            </p>
+
+            <!-- Contenedor de estadísticas generales -->
+            <div id="game-over-stats" style="display: none;">
+                <div class="overall-statistics">
+                    <!-- Aquí se mostrarán las estadísticas generales según el modo de juego -->
+                </div>
+            </div>
+
             <div class="modal-buttons">
+                <button id="toggle-stats-button" style="display: none;" onclick="toggleGameOverStats()">Ver Estadísticas Generales</button>
                 <button onclick="resetGame()">Reiniciar</button>
                 <button onclick="backToMainMenu()">Menú</button>
             </div>
         </div>
     </div>
 
-
-
+    <!-- Modal de Estadísticas Generales -->
+    <div id="general-stats-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>Estadísticas Generales</h2>
+            <div class="overall-statistics">
+                <!-- Estadísticas de P1 vs IA por dificultad -->
+                <!-- Las estadísticas se generan dinámicamente desde script.js -->
+            </div>
+            <button onclick="closeGeneralStats()">Volver al Menú</button>
+        </div>
+    </div>
 
 
     <!-- Ventana Modal para IA pensando -->

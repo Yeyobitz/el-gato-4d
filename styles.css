@@ -24,6 +24,7 @@ html, body {
 html::-webkit-scrollbar, body::-webkit-scrollbar {
     display: none;
 }
+
 @keyframes bodyFadeIn {
     to { opacity: 1; }
 }
@@ -75,7 +76,6 @@ button:hover,
 button:focus {
     cursor: url('images/cursors/hand_cursor.cur'), pointer;
 }
-
 
 /* ==================== CONTENEDORES PRINCIPALES ==================== */
 
@@ -133,7 +133,7 @@ button:focus {
     font-size: 13px;
     width: 200px;
     padding: 8px 20px;
-    margin: 10px;
+    margin: 10px 0;
     background-color: #222;
     color: #fff;
     border: 2px solid #fff;
@@ -184,11 +184,12 @@ button:focus {
 #board {
     width: 90%;
     height: 90%;
-    background-color: #75757585;
+    background-color: #ffffff85;
     aspect-ratio: 1;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
 }
 
 .mini-board {
@@ -200,36 +201,46 @@ button:focus {
     background-color: #222;
     position: relative;
     transition: transform 0.3s;
-    border: 2px solid #fff;
+    /*border: 2px solid #fff;*/
+    filter: blur(0.9px);
 }
 
 .mini-board.active {
-    animation: pulse 2s infinite ease-in-out;
-    outline: 1px dashed #ababab;
+    animation: activeBoardGlow 2s infinite;
+    filter: blur(0);
+    z-index: 1;
 }
 
-@keyframes pulse {
+@keyframes activeBoardGlow {
     0% {
-        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
-        outline: 3px dashed rgba(255, 255, 255, 0.7);
-        z-index: 1;
+        transform: scale(1.03);
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 5cap rgba(255, 255, 255, 0.7);
+        border-color: rgba(255, 255, 255, 0.5);
     }
     100% {
-        box-shadow: 0 0 0 50px rgba(255, 255, 255, 0);
-        outline: 10px dashed rgba(255, 255, 255, 0);
-        z-index: 1;
+        transform: scale(1.03);
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.3);
     }
 }
 
 .mini-board.winner-X {
     background-color: rgba(0, 93, 6, 0.56);
+    filter: blur(0);
 }
 
 .mini-board.winner-O {
     background-color: rgba(78, 0, 0, 0.56);
+    filter: blur(0);
 }
 
 /* Bordes para el tablero principal */
+/*
 .mini-board:nth-child(2),
 .mini-board:nth-child(5),
 .mini-board:nth-child(8) {
@@ -243,12 +254,13 @@ button:focus {
     border-top: 2px solid #fff;
     border-bottom: 2px solid #fff;
 }
+*/
 
 /* ==================== CELDAS ==================== */
 
 .cell {
     position: relative;
-    background-color: #111;
+    background-color: #111111;
     cursor: pointer;
     transition: background-color 0.3s;
     border: 1px solid #333;
@@ -339,26 +351,31 @@ button:focus {
     top: 0;
     width: 100%;
     height: 100%;
-    overflow: hidden;
+    overflow: auto;
     background-color: rgba(0, 0, 0, 0.8);
+
 }
 
 .modal-content {
-    position: relative;
+    box-sizing: border-box;
+    position: fixed; /* Cambiado de 'relative' a 'fixed' */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Centra el modal en ambas direcciones */
     background-color: #111;
-    margin: 5% auto;
     padding: 20px;
     border: 2px solid #fff;
     width: 80%;
     max-width: 500px;
-    max-height: 85%;
-    overflow-y: auto;
+    max-height: 90vh; /* Limita la altura máxima para pantallas pequeñas */
+    overflow-y: auto; /* Permite scroll interno si el contenido es muy grande */
     border-radius: 10px;
     text-align: center;
     animation: fadeIn 0.5s;
 }
 
 .modal-content h2 {
+    margin-top: 20px;
     font-size: 24px;
     color: #fff;
 }
@@ -372,12 +389,13 @@ button:focus {
     font-family: 'Press Start 2P', roboto, sans-serif;
     font-size: 16px;
     padding: 10px 20px;
-    margin: 10px;
+    margin: 10px 0;
     background-color: #222;
     color: #fff;
     border: 2px solid #fff;
     border-radius: 5px;
     transition: background-color 0.3s, transform 0.2s;
+    width: 50%;
 }
 
 .modal-content button:hover {
@@ -388,7 +406,7 @@ button:focus {
 /* Botón de cierre en modales */
 .close {
     color: #b80000;
-    position: fixed;
+    position: absolute; 
     top: 20px;
     right: 20px;
     font-size: 28px;
@@ -397,6 +415,7 @@ button:focus {
     cursor: pointer;
     transition: transform 0.3s;
 }
+
 
 .close:hover,
 .close:focus {
@@ -413,22 +432,23 @@ button:focus {
 }
 
 /* ==================== MODAL DE PAUSA ==================== */
-  #pause-modal .modal-content {
-      background-color: #111;
-      color: #fff;
-      margin: 10% auto;
-      overflow-x: hidden;
-  }
 
-  #pause-modal button {
-      width: 200px;
-      margin: 10px 0;
-  }
+#pause-modal .modal-content {
+    background-color: #111;
+    color: #fff;
+    overflow-x: hidden;
+}
 
-  #music-player {
-      width: 100%;
-      overflow-x: hidden;
-  }
+#pause-modal button {
+    width: 70%;
+    margin: 10px 0;
+}
+
+#music-player {
+    width: 100%;
+    overflow-x: hidden;
+}
+
 /* Estilos para el contenedor del botón de pausa */
 #game-controls {
     margin-top: 1px;
@@ -451,7 +471,6 @@ button:focus {
     transform: scale(1.05);
 }
 
-
 /* ==================== MODAL DE GAME OVER ==================== */
 
 /* Estilos para los párrafos de estadísticas en el modal */
@@ -464,25 +483,19 @@ button:focus {
     color: #ccc;
     margin: 8px 0;
     display: flex;
+    flex-direction: column;
     align-items: center;
 }
 
-#game-over-modal .label {
-    flex: 1;
-    text-align: left;
+#game-over-modal .label,
+#game-over-modal .separator,
+#game-over-modal .value {
+    width: 100%;
+    text-align: center;
 }
 
 #game-over-modal .separator {
-    flex: 2;
-    text-align: center;
-    font-size: 12px;
-    color: #555;
-    overflow: hidden;
-}
-
-#game-over-modal .value {
-    flex: 1;
-    text-align: right;
+    margin: 4px 0;
 }
 
 #game-over-modal h2 {
@@ -493,18 +506,22 @@ button:focus {
 
 #game-over-modal .modal-buttons {
     margin-top: 25px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 #game-over-modal .modal-buttons button {
     font-family: 'Press Start 2P', sans-serif;
     font-size: 16px;
     padding: 12px 24px;
-    margin: 5px;
+    margin: 5px 0;
     background-color: #222;
     color: #fff;
     border: 2px solid #fff;
     border-radius: 8px;
     transition: background-color 0.3s, transform 0.2s;
+    width: 100%;
 }
 
 #game-over-modal .modal-buttons button:hover {
@@ -518,27 +535,52 @@ button:focus {
     color: #ccc;
     margin-top: 15px;
     display: flex;
+    flex-direction: column;
     align-items: center;
 }
 
-#game-over-difficulty .label {
-    flex: 1;
-    text-align: left;
+#game-over-difficulty .label,
+#game-over-difficulty .separator,
+#game-over-difficulty .value {
+    width: 100%;
+    text-align: center;
 }
 
 #game-over-difficulty .separator {
-    flex: 2;
+    margin: 4px 0;
+}
+
+.overall-statistics {
+    margin-top: 20px;
+}
+
+.overall-statistics h3 {
+    font-size: 20px;
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.overall-statistics p {
+    font-size: 16px;
+    color: #ccc;
+    margin: 8px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.overall-statistics .label,
+.overall-statistics .separator,
+.overall-statistics .value {
+    width: 100%;
     text-align: center;
-    font-size: 12px;
-    color: #555;
-    overflow: hidden;
 }
 
-#game-over-difficulty .value {
-    flex: 1;
-    text-align: right;
+.overall-statistics .separator {
+    margin: 4px 0;
 }
 
+/* ==================== MODAL DE ESTADÍSTICAS GENERALES ==================== 
 
 /* ==================== CONTROLES DE MÚSICA ==================== */
 
@@ -581,8 +623,6 @@ button:focus {
 .next-btn::after {
     content: ">>";
 }
-
-
 
 #music-player button:hover {
     background-color: #444;
@@ -726,12 +766,8 @@ button:focus {
 
 /* ==================== ESTILOS RESPONSIVOS ==================== */
 
+/* Ajustes generales para dispositivos móviles */
 @media (max-width: 768px) {
-    /*.mini-board {
-        width: calc(90vmin / 3 - 10px);
-        height: calc(90vmin / 3 - 10px);
-        margin-top: 10px;
-    }*/
 
     #board {
         width: 100%;
@@ -743,93 +779,98 @@ button:focus {
     }
 
     .cell span {
-        font-size: 0.8em;
+        font-size: 1.5em;
+    }
+
+    .modal-content {
+        width: 70%;
+        max-width: 90%;
     }
 
     #game-info button {
         width: 80%;
     }
+
     #game-controls {
         margin-top: 40px;
     }
+
     #message {
         margin-top: -60px;
         margin-bottom: 20px;
     }
 
-    #game-over-modal {
-        margin-top: 5%;
-    }
-    #game-over-modal .statistics p,
-    #game-over-difficulty {
-        font-size: 12px;
-        margin: 4px 0;
-    }
-
-    #game-over-modal .separator {
-        display: none;
+    #game-over-modal h2 {
+        font-size: 24px;
     }
 
     #game-over-modal .statistics p,
-    #game-over-difficulty {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 4px;
+    #game-over-difficulty,
+    .overall-statistics p {
+        font-size: 14px;
     }
 
-    #game-over-modal .label,
-    #game-over-modal .value {
-        width: 100%;
-        text-align: center;
+    #game-over-modal .modal-buttons button {
+        font-size: 14px;
+        padding: 10px 20px;
+    }
+
+    #game-over-modal .modal-content {
+        width: 90%;
+    }
+
+    #draw-modal .modal-content {
+        width: 90%;
+    }
+}
+
+@media (max-width: 480px) {
+    .logo-container h1 {
+        font-size: 6vw;
+    }
+    .menu h2 {
+        font-size: 2vw;
+    }    
+    .modal-content {
+        width: 85%;
+        max-width: 95%;
+    }
+
+    .modal-content h2 {
+        font-size: 20px;
+    }
+
+    .modal-content p {
+        font-size: 14px;
+    }
+
+    .modal-content button {
+        font-size: 14px;
+        padding: 8px 16px;
+    }
+
+    #pause-modal .modal-content {
+        margin: 5% auto;
     }
 
     #game-over-modal h2 {
         font-size: 20px;
     }
 
+    #game-over-modal .statistics p,
+    #game-over-difficulty,
+    .overall-statistics p {
+        font-size: 12px;
+    }
+
     #game-over-modal .modal-buttons button {
-        font-size: 12px;
+        font-size: 10px;
         padding: 8px 16px;
     }
 
-    #game-over-modal .modal-content {
-        margin: 10% auto;
-        padding: 15px;
-        width: 90%;
+    .overall-statistics h3 {
+        font-size: 18px;
     }
-    #draw-modal .modal-content {
-        margin: 30% auto;
-        padding: 15px;
-        width: 90%;
-    }
-
-    #draw-modal h2 {
-        font-size: 20px;
-    }
-
-    #draw-modal p {
-        font-size: 14px;
-    }
-
-    #draw-modal button {
-        font-size: 12px;
-        padding: 8px 16px;
-        width: 80%;
-        margin: 5px auto;
-    }
-}
-
-@media (max-width: 480px) {
-    #pause-modal .modal-content {
-        margin: 45% auto;
-    }
-    #game-over-modal {
-        margin-top: 20%;
-    }
-    #draw-modal .modal-content {
-        margin: 40% auto;
-    }
-
 }
 
 /* ==================== ANIMACIONES Y EFECTOS ==================== */
@@ -837,7 +878,6 @@ button:focus {
 .last-symbol {
     color: red;
     transition: color 0.3s ease;
-    /* Otros efectos como text-shadow */
     text-shadow: 0 0 10px red;
 }
 
