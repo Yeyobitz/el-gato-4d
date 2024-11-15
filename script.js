@@ -222,6 +222,7 @@ function initGame() {
         activeBoard = null;
         hideAllModals();
         gameStartTime = Date.now();
+        totalPausedTime = 0;
         const timeElement = document.getElementById('time-elapsed');
         if (timeElement) {
             timeElement.textContent = '00:00';
@@ -1397,7 +1398,9 @@ function resetGameState() {
         gameStartTime = null; 
         currentPlayer = 'X';  
         moveCount = 0;
-        activeBoard = null;   
+        activeBoard = null;
+        totalPausedTime = 0;   // Reiniciar el tiempo total pausado
+        pauseStartTime = null; // Reiniciar el tiempo de inicio de pausa
         if (lastPlacedElement) {
             lastPlacedElement.classList.remove('last-symbol');
             lastPlacedElement = null;
