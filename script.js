@@ -1,3 +1,118 @@
+// Importa las funciones que necesitas de Firebase
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+import { getFirestore, collection, addDoc, query, where, orderBy, limit, getDocs, Timestamp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+
+// Tu configuración de Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyBJ28WLzSlja8PvLlWIRACVCq8c3ZMc7Aw",
+  authDomain: "multiuniversalgato.firebaseapp.com",
+  projectId: "multiuniversalgato",
+  storageBucket: "multiuniversalgato.firebasestorage.app",
+  messagingSenderId: "82793408721",
+  appId: "1:82793408721:web:956d91d8e4776d0468fdf0"
+};
+
+// Inicializa Firebase
+const app = initializeApp(firebaseConfig);
+
+// Inicializa Firestore
+const db = getFirestore(app);
+
+// Función para enviar el puntaje a Firestore
+async function enviarPuntaje(alias, tiempo, movimientos, dificultad) {
+    try {
+      const fecha = Timestamp.now();
+      await addDoc(collection(db, "rankings"), {
+        alias: alias,
+        tiempo: tiempo, // tiempo en segundos
+        movimientos: movimientos,
+        dificultad: dificultad,
+        fecha: fecha
+      });
+      alert("¡Puntaje enviado exitosamente!");
+    } catch (e) {
+      console.error("Error al agregar el puntaje: ", e);
+    }
+  }
+
+  // Función para obtener los puntajes filtrados por dificultad
+async function obtenerPuntajes(dificultad) {
+    try {
+      const q = query(
+        collection(db, "rankings"),
+        where("dificultad", "==", dificultad),
+        orderBy("tiempo", "asc"),
+        limit(10)
+      );
+      const querySnapshot = await getDocs(q);
+      let resultados = [];
+      querySnapshot.forEach((doc) => {
+        resultados.push(doc.data());
+      });
+      return resultados;
+    } catch (e) {
+      console.error("Error al obtener los puntajes: ", e);
+      return [];
+    }
+  }
+  
+
+  // Función para registrar el puntaje
+function registrarPuntaje() {
+    const aliasInput = document.getElementById('player-alias');
+    const alias = aliasInput.value.trim();
+  
+    if (alias === '') {
+      alert("Por favor, ingresa un alias válido.");
+      return;
+    }
+  
+    if (alias.length > 16) {
+      alert("El alias no puede tener más de 16 caracteres.");
+      return;
+    }
+  
+    // Obtener los datos de la partida
+    const tiempo = calculateTotalTimeInSeconds();
+    const movimientos = moveCount;
+    const dificultadActual = difficulty;
+  
+    // Enviar el puntaje a Firebase
+    enviarPuntaje(alias, tiempo, movimientos, dificultadActual);
+  
+    // Cerrar el modal
+    toggleDisplay('alias-modal', false);
+  
+    // Mostrar el modal de fin de juego
+    showGameOverModal(
+      'X', // Asumiendo que el jugador es 'X'
+      formatTime(tiempo),
+      movimientos,
+      calculateAverageTimePerMove(),
+      movimientos,
+      countWonBoards().boardsX,
+      countWonBoards().boardsO
+    );
+  }
+  
+  // Función para cerrar el modal sin registrar el puntaje
+  function cerrarAliasModal() {
+    toggleDisplay('alias-modal', false);
+  
+    // Mostrar el modal de fin de juego
+    showGameOverModal(
+      'X', // Asumiendo que el jugador es 'X'
+      formatTime(calculateTotalTimeInSeconds()),
+      moveCount,
+      calculateAverageTimePerMove(),
+      moveCount,
+      countWonBoards().boardsX,
+      countWonBoards().boardsO
+    );
+  }
+  
+  
+
 // ==================== VARIABLES GLOBALES ====================
 
 // Estado del juego
@@ -106,10 +221,7 @@ function loadPlayerStats() {
     }
 }
 
-// Función para guardar estadísticas en localStorage
-function savePlayerStats() {
-    localStorage.setItem('playerStats', JSON.stringify(playerStats));
-}
+
 
 // Configura los elementos de audio
 function setupAudioElements() {
@@ -478,16 +590,22 @@ function handleGameOver(winner) {
 
         savePlayerStats();
 
-        // Mostrar estadísticas en el modal
-        showGameOverModal(
-            winner,
-            formatTime(timeElapsedInSeconds),
-            totalMoves,
-            calculateAverageTimePerMove(),
-            totalMoves,
-            boardsX,
-            boardsO
-        );
+        // Si el modo es contra CPU y el jugador ganó
+        if (gameMode === 'cpu' && winner === 'X') {
+            // Mostrar modal para ingresar alias
+            toggleDisplay('alias-modal', true);
+        } else {
+            // Mostrar estadísticas en el modal
+            showGameOverModal(
+                winner,
+                formatTime(timeElapsedInSeconds),
+                totalMoves,
+                calculateAverageTimePerMove(),
+                totalMoves,
+                boardsX,
+                boardsO
+            );
+        }
     } catch (error) {
         console.error("Error en handleGameOver:", error);
     }
@@ -1049,6 +1167,16 @@ function startTimer() {
     }
 }
 
+// Formatea la fecha de firebase
+function formatDate(timestamp) {
+    const fecha = timestamp.toDate();
+    const dia = fecha.getDate().toString().padStart(2, '0');
+    const mes = (fecha.getMonth() + 1).toString().padStart(2, '0'); // Los meses empiezan en 0
+    const año = fecha.getFullYear();
+    return `${dia}/${mes}/${año}`;
+}
+
+
 // Formatea el tiempo en segundos a mm:ss
 function formatTime(seconds) {
     const minutes = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -1487,4 +1615,110 @@ function closeGeneralStats() {
     toggleDisplay('main-menu', true);
 }
 
+
+// Función para mostrar el modal de ranking
+function mostrarRanking() {
+    toggleDisplay('ranking-modal', true);
+    // Remove any pre-selection
+    document.getElementById('ranking-medium').style.display = 'none';
+    document.getElementById('ranking-hard').style.display = 'none';
+    document.getElementById('btn-medium').classList.remove('active');
+    document.getElementById('btn-hard').classList.remove('active');
+}
+  
+  // Función para cerrar el modal de ranking
+  function cerrarRanking() {
+    toggleDisplay('ranking-modal', false);
+  }
+  
+  // Función para cargar los puntajes desde Firebase y mostrarlos en las tablas
+  function mostrarRankingPorDificultad(dificultad) {
+    // Actualizar botones
+    document.getElementById('btn-medium').classList.remove('active');
+    document.getElementById('btn-hard').classList.remove('active');
+    document.getElementById(`btn-${dificultad}`).classList.add('active');
+
+    // Mostrar/ocultar secciones
+    document.getElementById('ranking-medium').style.display = dificultad === 'medium' ? 'flex' : 'none';
+    document.getElementById('ranking-hard').style.display = dificultad === 'hard' ? 'flex' : 'none';
+
+    // Cargar datos
+    cargarRanking(dificultad);
+}
+
+async function cargarRanking(dificultad) {
+    try {
+        console.log("Cargando ranking para dificultad:", dificultad);
+        const rankings = await obtenerPuntajes(dificultad);
+        console.log("Rankings obtenidos:", rankings);
+        
+        const rankingContainer = document.getElementById(`ranking-${dificultad}`);
+        if (!rankingContainer) {
+            console.error(`Container ranking-${dificultad} no encontrado`);
+            return;
+        }
+        
+        rankingContainer.innerHTML = '';
+        
+        if (rankings.length === 0) {
+            rankingContainer.innerHTML = '<div class="ranking-item">No hay puntajes registrados para esta dificultad</div>';
+            return;
+        }
+
+        rankings.forEach((puntaje, index) => {
+            const rankingClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '';
+            
+            const rankingItem = document.createElement('div');
+            rankingItem.className = `ranking-item ${rankingClass}`;
+            rankingItem.innerHTML = `
+                <div class="ranking-row">
+                    <span class="ranking-key">Posición:</span>
+                    <span class="ranking-value">${index + 1}</span>
+                </div>
+                <div class="ranking-row">
+                    <span class="ranking-key">Alias:</span>
+                    <span class="ranking-value">${puntaje.alias}</span>
+                </div>
+                <div class="ranking-row">
+                    <span class="ranking-key">Tiempo:</span>
+                    <span class="ranking-value">${formatTime(puntaje.tiempo)}</span>
+                </div>
+                <div class="ranking-row">
+                    <span class="ranking-key">Movimientos:</span>
+                    <span class="ranking-value">${puntaje.movimientos}</span>
+                </div>
+                <div class="ranking-row">
+                    <span class="ranking-key">Fecha:</span>
+                    <span class="ranking-value">${formatDate(puntaje.fecha)}</span>
+                </div>
+            `;
+            rankingContainer.appendChild(rankingItem);
+        });
+    } catch (error) {
+        console.error("Error en cargarRanking:", error);
+    }
+}
+
+
 // ==================== FIN DEL SCRIPT ====================
+
+// Expose required functions to the global scope
+window.showDifficulty = showDifficulty;
+window.startGame = startGame;
+window.backToMainMenu = backToMainMenu;
+window.showInstructions = showInstructions;
+window.showGeneralStats = showGeneralStats;
+window.mostrarRanking = mostrarRanking;
+window.pauseGame = pauseGame;
+window.retryGame = resetGame;
+window.resumeGame = resumeGame;
+window.hideInstructions = hideInstructions;
+window.closeGeneralStats = closeGeneralStats;
+window.togglePlayPause = togglePlayPause;
+window.setBGMVolume = setBGMVolume;
+window.previousSong = previousSong;
+window.nextSong = nextSong;
+window.registrarPuntaje = registrarPuntaje;
+window.cerrarAliasModal = cerrarAliasModal;
+window.cerrarRanking = cerrarRanking;
+window.mostrarRankingPorDificultad = mostrarRankingPorDificultad;

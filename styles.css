@@ -893,3 +893,253 @@ button:focus {
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
     color: #fff;
 }
+
+/* Estilos para el modal de ranking */
+#ranking-modal .modal-content {
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+/* Estilos para los botones del ranking */
+.difficulty-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    width: 80%;
+    margin: 20px auto;
+}
+
+.difficulty-buttons button {
+    flex: 1;
+    font-family: 'Press Start 2P', sans-serif;
+    padding: 10px 20px;
+    background-color: #222;
+    color: #fff;
+    border: 2px solid #fff;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+.difficulty-buttons button.active {
+    background-color: #444;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+    transform: scale(1.05);
+    animation: activeBoardGlow 2s infinite;
+}
+
+
+.close-button-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.close-button-container button {
+    font-family: 'Press Start 2P', sans-serif;
+    padding: 10px 20px;
+    background-color: #222;
+    color: #fff;
+    border: 2px solid #fff;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+
+/* Estilos para la sección de ranking */
+.ranking-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+/* Estilos para los elementos del ranking */
+.ranking-item {
+    width: 80%;
+    margin: 10px 0;
+    padding: 15px;
+    border: 1px solid #fff;
+    border-radius: 5px;
+    background-color: #222;
+    transition: all 0.3s ease;
+}
+
+.ranking-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+}
+
+.ranking-key {
+    color: #ccc;
+    font-weight: bold;
+    text-align: left;
+}
+
+.ranking-value {
+    color: #fff;
+    text-align: right;
+}
+
+@keyframes borderMove {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 50px 50px;
+    }
+}
+
+
+@keyframes goldPulse {
+    0% { 
+        background: linear-gradient(45deg, 
+            rgba(255, 215, 0, 0.8), 
+            rgba(255, 165, 0, 0.9)
+        );
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+    }
+    50% { 
+        background: linear-gradient(45deg, 
+            rgba(255, 223, 0, 0.9), 
+            rgba(255, 185, 0, 1)
+        );
+        box-shadow: 0 0 25px rgba(255, 215, 0, 0.5);
+    }
+    100% { 
+        background: linear-gradient(45deg, 
+            rgba(255, 215, 0, 0.8), 
+            rgba(255, 165, 0, 0.9)
+        );
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+    }
+}
+
+@keyframes silverPulse {
+    0% { 
+        background: linear-gradient(45deg, 
+            rgba(192, 192, 192, 0.8), 
+            rgba(169, 169, 169, 0.9)
+        );
+        box-shadow: 0 0 15px rgba(192, 192, 192, 0.3);
+    }
+    50% { 
+        background: linear-gradient(45deg, 
+            rgba(220, 220, 220, 0.9), 
+            rgba(192, 192, 192, 1)
+        );
+        box-shadow: 0 0 25px rgba(192, 192, 192, 0.5);
+    }
+    100% { 
+        background: linear-gradient(45deg, 
+            rgba(192, 192, 192, 0.8), 
+            rgba(169, 169, 169, 0.9)
+        );
+        box-shadow: 0 0 15px rgba(192, 192, 192, 0.3);
+    }
+}
+
+@keyframes bronzePulse {
+    0% { 
+        background: linear-gradient(45deg, 
+            rgba(205, 127, 50, 0.8), 
+            rgba(139, 69, 19, 0.9)
+        );
+        box-shadow: 0 0 15px rgba(205, 127, 50, 0.3);
+    }
+    50% { 
+        background: linear-gradient(45deg, 
+            rgba(223, 168, 120, 0.9), 
+            rgba(205, 127, 50, 1)
+        );
+        box-shadow: 0 0 25px rgba(205, 127, 50, 0.5);
+    }
+    100% { 
+        background: linear-gradient(45deg, 
+            rgba(205, 127, 50, 0.8), 
+            rgba(139, 69, 19, 0.9)
+        );
+        box-shadow: 0 0 15px rgba(205, 127, 50, 0.3);
+    }
+}
+
+.ranking-item.gold {
+    animation: goldPulse 4s ease-in-out infinite;
+    border: none;
+    background-clip: padding-box;
+    position: relative;
+    backdrop-filter: blur(5px);
+}
+
+.ranking-item.gold::before {
+    content: '';
+    position: absolute;
+    top: -2px; right: -2px; bottom: -2px; left: -2px;
+    z-index: -1;
+    border-radius: inherit;
+    background: linear-gradient(45deg, #FFD700, transparent 30%),
+                linear-gradient(-45deg, #FFA500, transparent 30%);
+    background-size: 10px 10px;
+    animation: borderMove 2s linear infinite;
+}
+
+.ranking-item.silver::before {
+    content: '';
+    position: absolute;
+    top: -2px; right: -2px; bottom: -2px; left: -2px;
+    z-index: -1;
+    border-radius: inherit;
+    background: linear-gradient(45deg, #C0C0C0, transparent 30%),
+                linear-gradient(-45deg, #A9A9A9, transparent 30%);
+    background-size: 10px 10px;
+    animation: borderMove 2s linear infinite;
+}
+
+.ranking-item.bronze::before {
+    content: '';
+    position: absolute;
+    top: -2px; right: -2px; bottom: -2px; left: -2px;
+    z-index: -1;
+    border-radius: inherit;
+    background: linear-gradient(45deg, #CD7F32, transparent 30%),
+                linear-gradient(-45deg, #8B4513, transparent 30%);
+    background-size: 10px 10px;
+    animation: borderMove 2s linear infinite;
+}
+
+
+.ranking-item.gold .ranking-key,
+.ranking-item.gold .ranking-value,
+.ranking-item.silver .ranking-key,
+.ranking-item.silver .ranking-value,
+.ranking-item.bronze .ranking-key,
+.ranking-item.bronze .ranking-value {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    
+}
+
+/* Ajustes para pantallas medianas */
+@media (min-width: 600px) {
+    .ranking-section {
+        grid-template-columns: repeat(2, 1fr); /* Dos columnas */
+    }
+}
+
+/* Ajustes para pantallas grandes */
+@media (min-width: 900px) {
+    .ranking-section {
+        grid-template-columns: repeat(3, 1fr); /* Tres columnas */
+    }
+}
+
+/* Ajustes para pantallas extra grandes */
+@media (min-width: 1200px) {
+    .ranking-section {
+        grid-template-columns: repeat(4, 1fr); /* Cuatro columnas */
+    }
+}
+
