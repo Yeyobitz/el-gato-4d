@@ -1167,6 +1167,16 @@ function startTimer() {
     }
 }
 
+// Formatea la fecha de firebase
+function formatDate(timestamp) {
+    const fecha = timestamp.toDate();
+    const dia = fecha.getDate().toString().padStart(2, '0');
+    const mes = (fecha.getMonth() + 1).toString().padStart(2, '0'); // Los meses empiezan en 0
+    const año = fecha.getFullYear();
+    return `${dia}/${mes}/${año}`;
+}
+
+
 // Formatea el tiempo en segundos a mm:ss
 function formatTime(seconds) {
     const minutes = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -1607,14 +1617,14 @@ function closeGeneralStats() {
 
 
 // Función para mostrar el modal de ranking
-async function mostrarRanking() {
-    try {
-      toggleDisplay('ranking-modal', true);
-      await cargarRanking();
-    } catch (error) {
-      console.error("Error en mostrarRanking:", error);
-    }
-  }
+function mostrarRanking() {
+    toggleDisplay('ranking-modal', true);
+    // Remove any pre-selection
+    document.getElementById('ranking-medium').style.display = 'none';
+    document.getElementById('ranking-hard').style.display = 'none';
+    document.getElementById('btn-medium').classList.remove('active');
+    document.getElementById('btn-hard').classList.remove('active');
+}
   
   // Función para cerrar el modal de ranking
   function cerrarRanking() {
@@ -1622,56 +1632,73 @@ async function mostrarRanking() {
   }
   
   // Función para cargar los puntajes desde Firebase y mostrarlos en las tablas
-  async function cargarRanking() {
+  function mostrarRankingPorDificultad(dificultad) {
+    // Actualizar botones
+    document.getElementById('btn-medium').classList.remove('active');
+    document.getElementById('btn-hard').classList.remove('active');
+    document.getElementById(`btn-${dificultad}`).classList.add('active');
+
+    // Mostrar/ocultar secciones
+    document.getElementById('ranking-medium').style.display = dificultad === 'medium' ? 'flex' : 'none';
+    document.getElementById('ranking-hard').style.display = dificultad === 'hard' ? 'flex' : 'none';
+
+    // Cargar datos
+    cargarRanking(dificultad);
+}
+
+async function cargarRanking(dificultad) {
     try {
-      const rankingsMedium = await obtenerPuntajes('medium');
-      const rankingsHard = await obtenerPuntajes('hard');
-  
-      // Limpiar tablas anteriores
-      const tbodyMedium = document.querySelector('#ranking-medium tbody');
-      const tbodyHard = document.querySelector('#ranking-hard tbody');
-      tbodyMedium.innerHTML = '';
-      tbodyHard.innerHTML = '';
-  
-      // Llenar tabla de dificultad medio
-      rankingsMedium.forEach((puntaje, index) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${index + 1}</td>
-          <td>${puntaje.alias}</td>
-          <td>${formatTime(puntaje.tiempo)}</td>
-          <td>${puntaje.movimientos}</td>
-          <td>${formatDate(puntaje.fecha)}</td>
-        `;
-        tbodyMedium.appendChild(tr);
-      });
-  
-      // Llenar tabla de dificultad difícil
-      rankingsHard.forEach((puntaje, index) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${index + 1}</td>
-          <td>${puntaje.alias}</td>
-          <td>${formatTime(puntaje.tiempo)}</td>
-          <td>${puntaje.movimientos}</td>
-          <td>${formatDate(puntaje.fecha)}</td>
-        `;
-        tbodyHard.appendChild(tr);
-      });
+        console.log("Cargando ranking para dificultad:", dificultad);
+        const rankings = await obtenerPuntajes(dificultad);
+        console.log("Rankings obtenidos:", rankings);
+        
+        const rankingContainer = document.getElementById(`ranking-${dificultad}`);
+        if (!rankingContainer) {
+            console.error(`Container ranking-${dificultad} no encontrado`);
+            return;
+        }
+        
+        rankingContainer.innerHTML = '';
+        
+        if (rankings.length === 0) {
+            rankingContainer.innerHTML = '<div class="ranking-item">No hay puntajes registrados para esta dificultad</div>';
+            return;
+        }
+
+        rankings.forEach((puntaje, index) => {
+            const rankingClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '';
+            
+            const rankingItem = document.createElement('div');
+            rankingItem.className = `ranking-item ${rankingClass}`;
+            rankingItem.innerHTML = `
+                <div class="ranking-row">
+                    <span class="ranking-key">Posición:</span>
+                    <span class="ranking-value">${index + 1}</span>
+                </div>
+                <div class="ranking-row">
+                    <span class="ranking-key">Alias:</span>
+                    <span class="ranking-value">${puntaje.alias}</span>
+                </div>
+                <div class="ranking-row">
+                    <span class="ranking-key">Tiempo:</span>
+                    <span class="ranking-value">${formatTime(puntaje.tiempo)}</span>
+                </div>
+                <div class="ranking-row">
+                    <span class="ranking-key">Movimientos:</span>
+                    <span class="ranking-value">${puntaje.movimientos}</span>
+                </div>
+                <div class="ranking-row">
+                    <span class="ranking-key">Fecha:</span>
+                    <span class="ranking-value">${formatDate(puntaje.fecha)}</span>
+                </div>
+            `;
+            rankingContainer.appendChild(rankingItem);
+        });
     } catch (error) {
-      console.error("Error en cargarRanking:", error);
+        console.error("Error en cargarRanking:", error);
     }
-  }
-  
-  // Función para formatear la fecha
-  function formatDate(timestamp) {
-    const fecha = timestamp.toDate();
-    const dia = fecha.getDate().toString().padStart(2, '0');
-    const mes = (fecha.getMonth() + 1).toString().padStart(2, '0'); // Los meses empiezan en 0
-    const año = fecha.getFullYear();
-    return `${dia}/${mes}/${año}`;
-  }
-  
+}
+
 
 // ==================== FIN DEL SCRIPT ====================
 
@@ -1694,3 +1721,4 @@ window.nextSong = nextSong;
 window.registrarPuntaje = registrarPuntaje;
 window.cerrarAliasModal = cerrarAliasModal;
 window.cerrarRanking = cerrarRanking;
+window.mostrarRankingPorDificultad = mostrarRankingPorDificultad;

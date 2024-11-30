@@ -4,22 +4,22 @@
     <!-- Metaetiquetas esenciales -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>4D TikTakToe - Multiuniversal Gato</title>
-    <meta name="description" content="Juega al innovador 4D TikTakToe, también conocido como Gato Multiuniversal. Desafía a tus amigos o a la IA en este emocionante juego de estrategia en cuatro dimensiones.">
-    <meta name="keywords" content="4D TikTakToe, Gato Multiuniversal, juego de mesa, juego en línea, tic-tac-toe 4D, tres en raya 4D, juego de estrategia, juego multijugador, IA, inteligencia artificial, Ceros y Cruces, Tres en Línea, Tatetí, Triqui, La Vieja, Michi, Totito, Equis Cero, Gato 4D, OXO, Noughts and Crosses, Jogo da Velha, Jogo do Galo, Zero o Cruz, XOXO, Morpion, Ta Te Ti, Cat's Game, Quantum TicTacToe, Multidimensional TicTacToe">
+    <title>Super TikTakToe - Multiuniversal Gato</title>
+    <meta name="description" content="Juega al innovador Super TikTakToe, también conocido como Gato Multiuniversal. Desafía a tus amigos o a la IA en este emocionante juego de estrategia en cuatro dimensiones.">
+    <meta name="keywords" content="Super TikTakToe, Gato Multiuniversal, juego de mesa, juego en línea, tic-tac-toe 4D, tres en raya 4D, juego de estrategia, juego multijugador, IA, inteligencia artificial, Ceros y Cruces, Tres en Línea, Tatetí, Triqui, La Vieja, Michi, Totito, Equis Cero, Gato Super, OXO, Noughts and Crosses, Jogo da Velha, Jogo do Galo, Zero o Cruz, XOXO, Morpion, Ta Te Ti, Cat's Game, Quantum TicTacToe, Multidimensional TicTacToe">
     <meta name="author" content="Yeyobitz">
     
     <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="4D TikTakToe - Multiuniversal Gato">
-    <meta property="og:description" content="Desafía a tus amigos o a la IA en el innovador juego 4D TikTakToe. ¡Una nueva dimensión en juegos de estrategia!">
+    <meta property="og:title" content="Super TikTakToe - Multiuniversal Gato">
+    <meta property="og:description" content="Desafía a tus amigos o a la IA en el innovador juego Super TikTakToe. ¡Una nueva dimensión en juegos de estrategia!">
     <meta property="og:image" content="https://multiuniversalgato.netlify.app/images/og-image.png">
     <meta property="og:url" content="https://multiuniversalgato.netlify.app">
     <meta property="og:type" content="website">
     
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="4D TikTakToe - Multiuniversal Gato">
-    <meta name="twitter:description" content="Desafía a tus amigos o a la IA en el innovador juego 4D TikTakToe. ¡Una nueva dimensión en juegos de estrategia!">
+    <meta name="twitter:title" content="Super TikTakToe - Multiuniversal Gato">
+    <meta name="twitter:description" content="Desafía a tus amigos o a la IA en el innovador juego Super TikTakToe. ¡Una nueva dimensión en juegos de estrategia!">
     <meta name="twitter:image" content="https://multiuniversalgato.netlify.app/images/og-image.png">
     
     <!-- Favicon e iconos para dispositivos -->
@@ -37,9 +37,9 @@
     {
       "@context": "http://schema.org",
       "@type": "WebApplication",
-      "name": "4D TikTakToe - Multiuniversal Gato",
+      "name": "Super TikTakToe - Multiuniversal Gato",
       "url": "https://multiuniversalgato.netlify.app",
-      "description": "Juega al innovador 4D TikTakToe, también conocido como Gato Multiuniversal. Desafía a tus amigos o a la IA en este emocionante juego de estrategia en cuatro dimensiones.",
+      "description": "Juega al innovador Super TikTakToe, también conocido como Gato Multiuniversal. Desafía a tus amigos o a la IA en este emocionante juego de estrategia en cuatro dimensiones.",
       "applicationCategory": "Game",
       "operatingSystem": "All",
       "browserRequirements": "Requires JavaScript. Compatible with modern browsers.",
@@ -80,14 +80,14 @@
             <div class="logo-container">
                 <h1 class="title">Multiuniversal<br/>Gato</h1>
                 <br/>
-                <h2 class="subtitle">A 4D TikTakToe by <a class="glitch" href="https://yeyobitz.dev">@Yeyobitz</a></h2> 
+                <h2 class="subtitle">A Super TikTakToe by <a class="glitch" href="https://yeyobitz.dev">@Yeyobitz</a></h2> 
             </div>
             <div class="menu-options">
                 <button onclick="showDifficulty('cpu')">P1 vs CPU</button>
                 <button onclick="startGame('pvp')">P1 vs P2</button>
                 <button id="instructions-button" onclick="showInstructions()">Reglas</button>
                 <button onclick="showGeneralStats()">Estadísticas</button>
-                <button onclick="mostrarRanking()">Ranking Mundial</button>
+                <button onclick="mostrarRanking()">Ranking</button>
             </div>
         </div>
 
@@ -306,45 +306,21 @@
 <!-- Modal de Ranking Mundial -->
 <div id="ranking-modal" class="modal" style="display: none;">
     <div class="modal-content">
-      <h2>Ranking Mundial</h2>
-      <div class="ranking-section">
-        <h3>Dificultad Medio</h3>
-        <table id="ranking-medium">
-          <thead>
-            <tr>
-              <th>Posición</th>
-              <th>Alias</th>
-              <th>Tiempo</th>
-              <th>Movimientos</th>
-              <th>Fecha</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Puntajes se llenarán aquí -->
-          </tbody>
-        </table>
+      <h2>Ranking</h2>
+      <div class="ranking-buttons">
+        <button id="btn-medium" onclick="mostrarRankingPorDificultad('medium')">Medio</button>
+        <button id="btn-hard" onclick="mostrarRankingPorDificultad('hard')">Difícil</button>
+        <button onclick="cerrarRanking()">Cerrar</button>
       </div>
-      <div class="ranking-section">
-        <h3>Dificultad Difícil</h3>
-        <table id="ranking-hard">
-          <thead>
-            <tr>
-              <th>Posición</th>
-              <th>Alias</th>
-              <th>Tiempo</th>
-              <th>Movimientos</th>
-              <th>Fecha</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Puntajes se llenarán aquí -->
-          </tbody>
-        </table>
+      <div id="ranking-medium" class="ranking-section" style="display: none;">
+        <!-- Puntajes se llenarán aquí -->
       </div>
-      <button onclick="cerrarRanking()">Cerrar</button>
+      <div id="ranking-hard" class="ranking-section" style="display: none;">
+        <!-- Puntajes se llenarán aquí -->
+      </div>
     </div>
-  </div>
-  
-    <script src="script.js" type="module"></script>
+</div>
+    
+<script src="script.js" type="module"></script>
 </body>
 </html>
