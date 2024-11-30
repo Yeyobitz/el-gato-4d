@@ -306,21 +306,23 @@
 <!-- Modal de Ranking Mundial -->
 <div id="ranking-modal" class="modal" style="display: none;">
     <div class="modal-content">
-      <h2>Ranking</h2>
-      <div class="ranking-buttons">
-        <button id="btn-medium" onclick="mostrarRankingPorDificultad('medium')">Medio</button>
-        <button id="btn-hard" onclick="mostrarRankingPorDificultad('hard')">Difícil</button>
-        <button onclick="cerrarRanking()">Cerrar</button>
-      </div>
-      <div id="ranking-medium" class="ranking-section" style="display: none;">
-        <!-- Puntajes se llenarán aquí -->
-      </div>
-      <div id="ranking-hard" class="ranking-section" style="display: none;">
-        <!-- Puntajes se llenarán aquí -->
-      </div>
+        <h2>Ranking Mundial</h2>
+        <div class="difficulty-buttons">
+            <button id="btn-medium" onclick="mostrarRankingPorDificultad('medium')">Medio</button>
+            <button id="btn-hard" onclick="mostrarRankingPorDificultad('hard')">Difícil</button>
+        </div>
+        <div id="ranking-medium" class="ranking-section" style="display: none;">
+            <!-- Puntajes se llenarán aquí -->
+        </div>
+        <div id="ranking-hard" class="ranking-section" style="display: none;">
+            <!-- Puntajes se llenarán aquí -->
+        </div>
+        <div class="close-button-container">
+            <button onclick="cerrarRanking()">Cerrar</button>
+        </div>
     </div>
 </div>
-    
+
 <script src="script.js" type="module"></script>
 </body>
 </html>
