@@ -893,3 +893,87 @@ button:focus {
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
     color: #fff;
 }
+
+
+/* Estilos para tablas en el ranking */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+  
+  th, td {
+    padding: 8px 12px;
+    border: 1px solid #fff;
+    text-align: center;
+  }
+  
+  th {
+    background-color: #333;
+  }
+  
+  tr:nth-child(even) {
+    background-color: #222;
+  }
+  
+  .ranking-section h3 {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-size: 1.2em;
+    color: #fff;
+  }
+  
+  /* Ranking Modal Responsive Styles */
+  #ranking-modal .modal-content {
+      max-height: 80vh;
+      overflow-y: auto;
+  }
+  
+  #ranking-modal table {
+      font-size: 16px;
+  }
+  
+  @media (max-width: 768px) {
+      #ranking-modal .modal-content {
+          width: 95%;
+          padding: 15px;
+      }
+  
+      #ranking-modal table {
+          font-size: 14px;
+      }
+  
+      #ranking-modal th, 
+      #ranking-modal td {
+          padding: 6px 8px;
+      }
+  }
+  
+  @media (max-width: 480px) {
+      #ranking-modal .modal-content {
+          width: 98%;
+          padding: 10px;
+      }
+  
+      #ranking-modal table {
+          font-size: 12px;
+      }
+  
+      #ranking-modal th, 
+      #ranking-modal td {
+          padding: 4px 6px;
+      }
+  
+      #ranking-modal .ranking-section h3 {
+          font-size: 16px;
+          margin: 15px 0 10px;
+      }
+  
+      /* Optimize table layout for very small screens */
+      #ranking-modal table {
+          display: block;
+          overflow-x: auto;
+          white-space: nowrap;
+      }
+  }
+  

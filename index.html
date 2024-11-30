@@ -87,6 +87,7 @@
                 <button onclick="startGame('pvp')">P1 vs P2</button>
                 <button id="instructions-button" onclick="showInstructions()">Reglas</button>
                 <button onclick="showGeneralStats()">Estadísticas</button>
+                <button onclick="mostrarRanking()">Ranking Mundial</button>
             </div>
         </div>
 
@@ -290,6 +291,60 @@
     <audio id="bgm-game" src="" loop></audio>
     
     </div>
-    <script src="script.js"></script>
+
+<!-- Modal para Ingresar Alias -->
+<div id="alias-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h2>¡Has Ganado!</h2>
+      <p>Ingresa tu alias (máximo 16 caracteres) para registrar tu puntaje:</p>
+      <input type="text" id="player-alias" maxlength="16" placeholder="Alias">
+      <button onclick="registrarPuntaje()">Enviar Puntaje</button>
+      <button onclick="cerrarAliasModal()">Cancelar</button>
+    </div>
+  </div>
+
+<!-- Modal de Ranking Mundial -->
+<div id="ranking-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h2>Ranking Mundial</h2>
+      <div class="ranking-section">
+        <h3>Dificultad Medio</h3>
+        <table id="ranking-medium">
+          <thead>
+            <tr>
+              <th>Posición</th>
+              <th>Alias</th>
+              <th>Tiempo</th>
+              <th>Movimientos</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Puntajes se llenarán aquí -->
+          </tbody>
+        </table>
+      </div>
+      <div class="ranking-section">
+        <h3>Dificultad Difícil</h3>
+        <table id="ranking-hard">
+          <thead>
+            <tr>
+              <th>Posición</th>
+              <th>Alias</th>
+              <th>Tiempo</th>
+              <th>Movimientos</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Puntajes se llenarán aquí -->
+          </tbody>
+        </table>
+      </div>
+      <button onclick="cerrarRanking()">Cerrar</button>
+    </div>
+  </div>
+  
+    <script src="script.js" type="module"></script>
 </body>
 </html>
