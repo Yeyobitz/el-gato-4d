@@ -1722,3 +1722,4 @@ window.registrarPuntaje = registrarPuntaje;
 window.cerrarAliasModal = cerrarAliasModal;
 window.cerrarRanking = cerrarRanking;
 window.mostrarRankingPorDificultad = mostrarRankingPorDificultad;
+window.resetGame = resetGame;
