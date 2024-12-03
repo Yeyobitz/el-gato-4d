@@ -1,6 +1,10 @@
 /* ==================== ESTILOS GENERALES ==================== */
 
 /* Reseteo y configuración básica */
+.hidden {
+    display: none !important;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -170,7 +174,6 @@ button:focus {
     height: 80vmin;
     max-width: 90vw;
     max-height: 90vh;
-    display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
@@ -905,6 +908,21 @@ button:focus {
 #ranking-modal .modal-content {
     max-height: 80vh;
     overflow-y: auto;
+}
+
+.ranking-alias {
+    text-align: center;
+    font-size: 1.2em;
+    margin: 8px 0;
+    font-weight: bold;
+    color: #fff;
+}
+
+.ranking-position {
+    text-align: center;
+    font-size: 1.5em;
+    margin-bottom: 4px;
+font-weight: bold;
 }
 
 /* Estilos para los botones del ranking */
