@@ -296,33 +296,92 @@ let clickSound;
 
 // Add this to your window.onload function
 function setupEventListeners() {
-    // Menu buttons
-    document.getElementById('btn-cpu').addEventListener('click', () => showDifficulty('cpu'));
-    document.getElementById('btn-pvp').addEventListener('click', () => startGame('pvp'));
-    document.getElementById('btn-instructions').addEventListener('click', showInstructions);
-    document.getElementById('btn-stats').addEventListener('click', showGeneralStats);
-    document.getElementById('btn-ranking').addEventListener('click', mostrarRanking);
-    
+    // Main menu buttons
+    document.querySelectorAll('[data-action]').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const action = e.target.getAttribute('data-action');
+            switch(action) {
+                case 'difficulty': showDifficulty('cpu'); break;
+                case 'pvp': startGame('pvp'); break;
+                case 'instructions': showInstructions(); break;
+                case 'stats': showGeneralStats(); break;
+                case 'ranking': mostrarRanking(); break;
+                case 'back': backToMainMenu(); break;
+                case 'pause': pauseGame(); break;
+                case 'resume': resumeGame(); break;
+                case 'reset': resetGame(); break;
+                case 'menu': backToMainMenu(); break;
+                case 'retry': retryGame(); break;
+                case 'close-instructions': hideInstructions(); break;
+                case 'close-stats': closeGeneralStats(); break;
+                case 'close-ranking': cerrarRanking(); break;
+                case 'toggle-stats': toggleGameOverStats(); break;
+                case 'submit-score': registrarPuntaje(); break;
+                case 'cancel-score': cerrarAliasModal(); break;
+            }
+            playClickSound();
+        });
+    });
+
     // Difficulty buttons
-    document.getElementById('btn-easy').addEventListener('click', () => startGame('cpu', 'easy'));
-    document.getElementById('btn-medium').addEventListener('click', () => startGame('cpu', 'medium'));
-    document.getElementById('btn-hard').addEventListener('click', () => startGame('cpu', 'hard'));
-    
-    // Other controls
-    document.getElementById('volume-control').addEventListener('input', (e) => setBGMVolume(e.target.value));
-    document.getElementById('btn-previous').addEventListener('click', previousSong);
-    document.getElementById('btn-play-pause').addEventListener('click', togglePlayPause);
-    document.getElementById('btn-next').addEventListener('click', nextSong);
+    document.querySelectorAll('[data-difficulty]').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const difficulty = e.target.getAttribute('data-difficulty');
+            startGame('cpu', difficulty);
+            playClickSound();
+        });
+    });
+
+    // Ranking difficulty buttons
+    document.querySelectorAll('[data-ranking]').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const difficulty = e.target.getAttribute('data-ranking');
+            mostrarRankingPorDificultad(difficulty);
+            playClickSound();
+        });
+    });
+
+    // Music controls
+    const volumeControl = document.getElementById('bgm-volume');
+    if (volumeControl) {
+        volumeControl.addEventListener('input', (e) => setBGMVolume(e.target.value));
+    }
+
+    document.querySelector('[data-action="prev-song"]').addEventListener('click', previousSong);
+    document.querySelector('[data-action="play-pause"]').addEventListener('click', togglePlayPause);
+    document.querySelector('[data-action="next-song"]').addEventListener('click', nextSong);
+
+    // Keyboard events
+    document.addEventListener('keydown', (e) => {
+        if (['Escape', 'p', 'P', ' '].includes(e.key)) {
+            if (!isGamePaused) {
+                pauseGame();
+            } else {
+                resumeGame();
+            }
+        }
+    });
 }
 
+// Initialize event listeners when DOM is loaded
+document.addEventListener('DOMContentLoaded', setupEventListeners);
+
+
 // Se ejecuta cuando la ventana se ha cargado completamente
-window.onload = function() {
-    setupAudioElements();
-    loadPlayerStats();
-    playMainMenuBGM();
-    setupEventListeners();
-    initializeFirebase();
+window.onload = async function() {
+    try {
+        await initializeFirebase();
+        setupAudioElements();
+        loadPlayerStats();
+        setupEventListeners();
+        playMainMenuBGM();
+        document.body.classList.add('loaded');
+    } catch (error) {
+        console.error('Initialization failed:', error);
+        // Handle initialization failure
+    }
 };
+
 
 // Función para cargar estadísticas desde localStorage
 function loadPlayerStats() {

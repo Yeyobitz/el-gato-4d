@@ -1,249 +1,144 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <!-- Metaetiquetas esenciales -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Super TikTakToe - Multiuniversal Gato</title>
     <meta name="description" content="Juega al innovador Super TikTakToe, también conocido como Gato Multiuniversal. Desafía a tus amigos o a la IA en este emocionante juego de estrategia en cuatro dimensiones.">
-    <meta name="keywords" content="Super TikTakToe, Gato Multiuniversal, juego de mesa, juego en línea, tic-tac-toe 4D, tres en raya 4D, juego de estrategia, juego multijugador, IA, inteligencia artificial, Ceros y Cruces, Tres en Línea, Tatetí, Triqui, La Vieja, Michi, Totito, Equis Cero, Gato Super, OXO, Noughts and Crosses, Jogo da Velha, Jogo do Galo, Zero o Cruz, XOXO, Morpion, Ta Te Ti, Cat's Game, Quantum TicTacToe, Multidimensional TicTacToe">
+    <meta name="keywords" content="Super TikTakToe, Gato Multiuniversal, juego de mesa, juego en línea, tic-tac-toe 4D, tres en raya 4D, juego de estrategia, juego multijugador, IA, inteligencia artificial">
     <meta name="author" content="Yeyobitz">
 
-    <!-- Add these security headers -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com/firebasejs/; connect-src 'self' https://*.firebaseio.com https://*.firebase.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="DENY">
     <meta http-equiv="Permissions-Policy" content="interest-cohort=()">
     <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains">
-    <meta http-equiv="Content-Security-Policy" content="
-    default-src 'self';
-    script-src 'self' 'nonce-${nonce}' https://www.gstatic.com/firebasejs/;
-    connect-src 'self' https://*.firebaseio.com https://*.firebase.com;
-    style-src 'self' https://fonts.googleapis.com;
-    font-src 'self' https://fonts.gstatic.com;
-    img-src 'self' data:;
-    media-src 'self';
-    frame-ancestors 'none';
-    form-action 'self';
-    base-uri 'self';
-    object-src 'none'
-    ">
     <meta http-equiv="X-XSS-Protection" content="1; mode=block">
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
-    <meta http-equiv="Feature-Policy" content="
-        accelerometer 'none';
-        camera 'none';
-        geolocation 'none';
-        gyroscope 'none';
-        magnetometer 'none';
-        microphone 'none';
-        payment 'none';
-        usb 'none'
-    ">
 
-    <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="Super TikTakToe - Multiuniversal Gato">
-    <meta property="og:description" content="Desafía a tus amigos o a la IA en el innovador juego Super TikTakToe. ¡Una nueva dimensión en juegos de estrategia!">
-    <meta property="og:image" content="https://multiuniversalgato.netlify.app/images/og-image.png">
-    <meta property="og:url" content="https://multiuniversalgato.netlify.app">
-    <meta property="og:type" content="website">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://www.gstatic.com">
     
-    <!-- Twitter Card Meta Tags -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Super TikTakToe - Multiuniversal Gato">
-    <meta name="twitter:description" content="Desafía a tus amigos o a la IA en el innovador juego Super TikTakToe. ¡Una nueva dimensión en juegos de estrategia!">
-    <meta name="twitter:image" content="https://multiuniversalgato.netlify.app/images/og-image.png">
-    
-    <!-- Favicon e iconos para dispositivos -->
     <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
     <link rel="manifest" href="site.webmanifest">
     
-    <!-- Enlaces a hojas de estilo y fuentes -->
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css?family=Press+Start+2P|Roboto:400,700&display=swap" rel="stylesheet">
-    
-    <!-- Datos estructurados Schema.org -->
-    <script type="application/ld+json">
-    {
-      "@context": "http://schema.org",
-      "@type": "WebApplication",
-      "name": "Super TikTakToe - Multiuniversal Gato",
-      "url": "https://multiuniversalgato.netlify.app",
-      "description": "Juega al innovador Super TikTakToe, también conocido como Gato Multiuniversal. Desafía a tus amigos o a la IA en este emocionante juego de estrategia en cuatro dimensiones.",
-      "applicationCategory": "Game",
-      "operatingSystem": "All",
-      "browserRequirements": "Requires JavaScript. Compatible with modern browsers.",
-      "author": {
-        "@type": "Person",
-        "name": "Yeyobitz",
-        "url": "https://yeyobitz.dev"
-      },
-      "image": "https://multiuniversalgato.netlify.app/images/og-image.png",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD"
-      },
-      "inLanguage": "es"
-    }
-    </script>
+
+    <link rel="preload" href="fonts/PressStart2P-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="music/main_menu.ogg" as="audio">
 </head>
 <body>
-    <!-- Preload critical resources -->
-<link rel="preload" href="fonts/PressStart2P-Regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="music/main_menu.ogg" as="audio">
-    <!-- Fondo de estrellas -->
     <section id="stars">
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
+        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span>
     </section>
-    <!-- Menú principal -->
-    <!-- Contenedor principal -->
+
     <div id="main-container">
-        <!-- Menú principal -->
         <div id="main-menu" class="menu">
             <div class="logo-container">
                 <h1 class="title">Multiuniversal<br/>Gato</h1>
-                <br/>
                 <h2 class="subtitle">A Super TikTakToe by <a class="glitch" href="https://yeyobitz.dev">@Yeyobitz</a></h2> 
             </div>
             <div class="menu-options">
-                <button onclick="showDifficulty('cpu')">P1 vs CPU</button>
-                <button onclick="startGame('pvp')">P1 vs P2</button>
-                <button id="instructions-button" onclick="showInstructions()">Reglas</button>
-                <button onclick="showGeneralStats()">Estadísticas</button>
-                <button onclick="mostrarRanking()">Ranking</button>
+                <button data-action="difficulty">P1 vs CPU</button>
+                <button data-action="pvp">P1 vs P2</button>
+                <button data-action="instructions">Reglas</button>
+                <button data-action="stats">Estadísticas</button>
+                <button data-action="ranking">Ranking</button>
             </div>
         </div>
 
-        <!-- Menú de dificultad -->
-        <div id="difficulty-menu" class="menu" style="display: none; margin-top: 36px;">
+        <div id="difficulty-menu" class="menu hidden">
             <h2>Seleccione la dificultad</h2>
             <div class="menu-options">
-                <button onclick="startGame('cpu', 'easy')">Fácil</button>
-                <button onclick="startGame('cpu', 'medium')">Medio</button>
-                <button onclick="startGame('cpu', 'hard')">Difícil</button>
-                <button onclick="backToMainMenu()">Atrás</button>
+                <button data-difficulty="easy">Fácil</button>
+                <button data-difficulty="medium">Medio</button>
+                <button data-difficulty="hard">Difícil</button>
+                <button data-action="back">Atrás</button>
             </div>
         </div>
 
-    <!-- Contenedor del juego -->
-    <div id="game-container" style="display: none;">
-        <div id="timer"><span id="time-elapsed">00:00</span></div>
-        <div id="game-info">
-            <!-- Mensaje de turno debajo del contenedor del juego -->
-            <div id="message"></div>
-        </div>
-        <div id="game-content">
-            <div id="board"></div>
-        </div>
-        <div id="game-controls">
-            <button id="pause-button" onclick="pauseGame()">PAUSA</button>
-        </div>
-    </div>
-
-
-    <!-- Ventana Modal para Empate Inminente -->
-    <div id="draw-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <h2>¡El empate es inminente!</h2>
-            <br/>
-            <p>¿Deseas reintentar?</p>
-            <br/>
-            <button onclick="retryGame()">Reintentar</button>
-            <button onclick="backToMainMenu()">Menú Principal</button>
-        </div>
-    </div>
-
-    <!-- Ventana Modal para Fin de Juego -->
-    <div id="game-over-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-
-            <!-- Contenedor del resumen de partida -->
-            <div id="game-over-content">
-                <h2 id="game-over-title">¡Felicidades<br>Jugador!</h2>
-                <div class="statistics">
-                    <p id="game-over-turns">
-                        <span class="label"><strong>Turnos</strong></span>
-                        <span class="separator">· · · · · · ·</span>
-                        <span class="value">0</span>
-                    </p>
-                    <p id="game-over-time">
-                        <span class="label"><strong>Tiempo total</strong></span>
-                        <span class="separator">· · · · · · ·</span>
-                        <span class="value">00:00</span>
-                    </p>
-                    <p id="game-over-average-time">
-                        <span class="label"><strong>Promedio por turno</strong></span>
-                        <span class="separator">· · · · · · ·</span>
-                        <span class="value">0s</span>
-                    </p>
-                    <p id="game-over-boards-x">
-                        <span class="label"><strong>Mini-boards de X</strong></span>
-                        <span class="separator">· · · · · · · ·</span>
-                        <span class="value">0</span>
-                    </p>
-                    <p id="game-over-boards-o">
-                        <span class="label"><strong>Mini-boards de O</strong></span>
-                        <span class="separator">· · · · · · · ·</span>
-                        <span class="value">0</span>
-                    </p>
-                    <!-- Mostrar dificultad si el modo es P1 vs IA -->
-                    <p id="game-over-difficulty" style="display: none;">
-                        <span class="label"><strong>Dificultad</strong></span>
-                        <span class="separator">· · · · · · ·</span>
-                        <span class="value">[Dificultad]</span>
-                    </p>
-                </div>
+        <div id="game-container" class="hidden">
+            <div id="timer"><span id="time-elapsed">00:00</span></div>
+            <div id="game-info">
+                <div id="message"></div>
             </div>
-
-            <!-- Contenedor de estadísticas generales -->
-            <div id="game-over-stats" style="display: none;">
-                <div class="overall-statistics">
-                    <!-- Aquí se mostrarán las estadísticas generales según el modo de juego -->
-                </div>
+            <div id="game-content">
+                <div id="board"></div>
             </div>
-
-            <div class="modal-buttons">
-                <button id="toggle-stats-button" style="display: none;" onclick="toggleGameOverStats()">Ver Estadísticas Generales</button>
-                <button onclick="resetGame()">Reiniciar</button>
-                <button onclick="backToMainMenu()">Menú</button>
+            <div id="game-controls">
+                <button id="pause-button" data-action="pause">PAUSA</button>
             </div>
         </div>
-    </div>
 
-    <!-- Modal de Estadísticas Generales -->
-    <div id="general-stats-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <h2>Estadísticas Generales</h2>
-            <div class="overall-statistics">
-                <!-- Estadísticas de P1 vs IA por dificultad -->
-                <!-- Las estadísticas se generan dinámicamente desde script.js -->
+        <!-- Modals -->
+        <div id="draw-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2>¡El empate es inminente!</h2>
+                <p>¿Deseas reintentar?</p>
+                <button data-action="retry">Reintentar</button>
+                <button data-action="menu">Menú Principal</button>
             </div>
-            <button onclick="closeGeneralStats()">Volver al Menú</button>
+        </div>
+
+<!-- Game Over Modal -->
+<div id="game-over-modal" class="modal hidden">
+    <div class="modal-content">
+        <div id="game-over-content">
+            <h2 id="game-over-title">¡Felicidades<br>Jugador!</h2>
+            <div class="statistics">
+                <p id="game-over-turns">
+                    <span class="label"><strong>Turnos</strong></span>
+                    <span class="separator">· · · · · · ·</span>
+                    <span class="value">0</span>
+                </p>
+                <p id="game-over-time">
+                    <span class="label"><strong>Tiempo total</strong></span>
+                    <span class="separator">· · · · · · ·</span>
+                    <span class="value">00:00</span>
+                </p>
+                <p id="game-over-average-time">
+                    <span class="label"><strong>Promedio por turno</strong></span>
+                    <span class="separator">· · · · · · ·</span>
+                    <span class="value">0s</span>
+                </p>
+                <p id="game-over-boards-x">
+                    <span class="label"><strong>Mini-boards de X</strong></span>
+                    <span class="separator">· · · · · · · ·</span>
+                    <span class="value">0</span>
+                </p>
+                <p id="game-over-boards-o">
+                    <span class="label"><strong>Mini-boards de O</strong></span>
+                    <span class="separator">· · · · · · · ·</span>
+                    <span class="value">0</span>
+                </p>
+                <p id="game-over-difficulty" class="hidden">
+                    <span class="label"><strong>Dificultad</strong></span>
+                    <span class="separator">· · · · · · ·</span>
+                    <span class="value">[Dificultad]</span>
+                </p>
+            </div>
+        </div>
+        <div id="game-over-stats" class="hidden">
+            <div class="overall-statistics"></div>
+        </div>
+        <div class="modal-buttons">
+            <button data-action="toggle-stats" class="hidden">Ver Estadísticas Generales</button>
+            <button data-action="reset">Reiniciar</button>
+            <button data-action="menu">Menú</button>
         </div>
     </div>
+</div>
 
-
-    <!-- Ventana Modal para IA pensando -->
-    <div id="ai-thinking-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <h2>IA pensando<span id="dots"></span></h2>
-        </div>
-    </div>
-
-<!-- Modal de Instrucciones -->
-<div id="instructions-modal" class="modal">
-    <div class="modal-content"><span class="close" onclick="hideInstructions()">&times;</span> 
+<!-- Instructions Modal -->
+<div id="instructions-modal" class="modal hidden">
+    <div class="modal-content">
+        <button class="close" data-action="close-instructions">&times;</button>
+        <h2>Multiuniversal Gato</h2>
         <h2>Multiuniversal Gato</h2>
     </br>
         <h3>Objetivo del Juego</h3>
@@ -281,86 +176,86 @@
         <p>Haz clic en la casilla donde deseas jugar. El juego te mostrará dónde debes jugar.</p>
     </br>
         <h3>¡Diviértete!</h3>
-        <button onclick="hideInstructions()">Cerrar</button>
-
-        </div>
-        
+</br>
+        <button data-action="close-instructions">Cerrar</button>
+    </div>
 </div>
 
-<!-- Modal de Pausa -->
-<div id="pause-modal" class="modal" style="display: none;">
+<!-- Pause Modal -->
+<div id="pause-modal" class="modal hidden">
     <div class="modal-content">
-        <h2></h2>
-        <button onclick="resumeGame()">Continuar</button>
-        <button onclick="resetGame()">Reiniciar</button>
-        <button onclick="backToMainMenu()">Menú</button>
-        <button onclick="showInstructions()">Reglas</button>
-
-        <div id="music-player" style="text-align: center;">
+        <h2>Juego Pausado</h2>
+        <button data-action="resume">Continuar</button>
+        <button data-action="reset">Reiniciar</button>
+        <button data-action="menu">Menú</button>
+        <button data-action="instructions">Reglas</button>
+        <div id="music-player">
             <div class="volume-control">
                 <label for="bgm-volume">Volumen de Música</label>
-                <input type="range" id="bgm-volume" min="0" max="1" step="0.05" value="1" onchange="setBGMVolume(this.value)">
+                <input type="range" id="bgm-volume" min="0" max="1" step="0.05" value="1">
             </div>
             <div id="music-controls" class="controls-container">
-                <button class="prev-btn" onclick="previousSong()"></button>
-                <button class="play-btn" onclick="togglePlayPause()"></button>
-                <button class="next-btn" onclick="nextSong()"></button>
-            </div>            
-            
+                <button class="prev-btn" data-action="prev-song"></button>
+                <button class="play-btn" data-action="play-pause"></button>
+                <button class="next-btn" data-action="next-song"></button>
+            </div>
             <p id="current-song-name"><span id="song-name">None</span></p>
         </div>
-        
     </div>
 </div>
 
-
-    <!-- Elementos de audio para sonidos -->
-    <audio id="place-sound" src="sounds/place.mp3"></audio>
-    <audio id="win-sound" src="sounds/win.mp3"></audio>
-    <audio id="draw-sound" src="sounds/draw.mp3"></audio>
-    <audio id="click-sound" src="sounds/click.mp3"></audio>
-
-    <!-- Elementos de audio para música de fondo -->
-    <audio id="bgm-main-menu" src="music/main_menu.ogg" loop></audio>
-    <audio id="bgm-game" src="" loop></audio>
-    
-    </div>
-
-<!-- Modal para Ingresar Alias -->
-<div id="alias-modal" class="modal" style="display: none;">
+<!-- AI Thinking Modal -->
+<div id="ai-thinking-modal" class="modal hidden">
     <div class="modal-content">
-      <h2>¡Has Ganado!</h2>
-      <p>Ingresa tu alias (máximo 16 caracteres) para registrar tu puntaje:</p>
-      <input type="text" id="player-alias" maxlength="16" placeholder="Alias">
-      <button onclick="registrarPuntaje()">Enviar Puntaje</button>
-      <button onclick="cerrarAliasModal()">Cancelar</button>
+        <h2>IA pensando<span id="dots"></span></h2>
     </div>
-  </div>
+</div>
 
-<!-- Modal de Ranking Mundial -->
-<div id="ranking-modal" class="modal" style="display: none;">
+<!-- General Stats Modal -->
+<div id="general-stats-modal" class="modal hidden">
+    <div class="modal-content">
+        <h2>Estadísticas Generales</h2>
+        <div class="overall-statistics"></div>
+        <button data-action="close-stats">Volver al Menú</button>
+    </div>
+</div>
+
+<!-- Alias Modal -->
+<div id="alias-modal" class="modal hidden">
+    <div class="modal-content">
+        <h2>¡Has Ganado!</h2>
+        <p>Ingresa tu alias (máximo 16 caracteres) para registrar tu puntaje:</p>
+        <input type="text" id="player-alias" maxlength="16" placeholder="Alias">
+        <button data-action="submit-score">Enviar Puntaje</button>
+        <button data-action="cancel-score">Cancelar</button>
+    </div>
+</div>
+
+<!-- Ranking Modal -->
+<div id="ranking-modal" class="modal hidden">
     <div class="modal-content">
         <h2>Ranking Mundial</h2>
         <div class="difficulty-buttons">
-            <button id="btn-medium" onclick="mostrarRankingPorDificultad('medium')">Medio</button>
-            <button id="btn-hard" onclick="mostrarRankingPorDificultad('hard')">Difícil</button>
+            <button id="btn-medium" data-ranking="medium">Medio</button>
+            <button id="btn-hard" data-ranking="hard">Difícil</button>
         </div>
-        <div id="ranking-medium" class="ranking-section" style="display: none;">
-            <!-- Puntajes se llenarán aquí -->
-        </div>
-        <div id="ranking-hard" class="ranking-section" style="display: none;">
-            <!-- Puntajes se llenarán aquí -->
-        </div>
+        <div id="ranking-medium" class="ranking-section hidden"></div>
+        <div id="ranking-hard" class="ranking-section hidden"></div>
         <div class="close-button-container">
-            <button onclick="cerrarRanking()">Cerrar</button>
+            <button data-action="close-ranking">Cerrar</button>
         </div>
     </div>
 </div>
+
+
+<!-- Audio elements -->
+<audio id="place-sound" src="sounds/place.mp3" preload="auto"></audio>
+<audio id="win-sound" src="sounds/win.mp3" preload="auto"></audio>
+<audio id="draw-sound" src="sounds/draw.mp3" preload="auto"></audio>
+<audio id="click-sound" src="sounds/click.mp3" preload="auto"></audio>
+<audio id="bgm-main-menu" src="music/main_menu.ogg" loop preload="auto"></audio>
+<audio id="bgm-game" loop></audio>
 
 <script src="script.js" type="module"></script>
 </body>
 </html>
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://www.gstatic.com">
