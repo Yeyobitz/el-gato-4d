@@ -372,6 +372,7 @@ button:focus {
     border-radius: 10px;
     text-align: center;
     animation: fadeIn 0.5s;
+    overflow: auto; /* Agregar esta línea */
 }
 
 .modal-content h2 {
@@ -906,13 +907,13 @@ button:focus {
     justify-content: center;
     gap: 20px;
     width: 80%;
-    margin: 20px auto;
+    margin: 5px auto;
 }
 
 .difficulty-buttons button {
     flex: 1;
     font-family: 'Press Start 2P', sans-serif;
-    padding: 10px 20px;
+    padding: 10px 10px;
     background-color: #222;
     color: #fff;
     border: 2px solid #fff;
@@ -953,12 +954,15 @@ button:focus {
     flex-direction: column;
     align-items: center;
     width: 100%;
+    max-width: 100%;
 }
 
 /* Estilos para los elementos del ranking */
 .ranking-item {
-    width: 80%;
-    margin: 10px 0;
+    position: relative;
+    overflow: hidden;
+    width: 90%;
+    margin: 10px auto;
     padding: 15px;
     border: 1px solid #fff;
     border-radius: 5px;
@@ -1074,6 +1078,23 @@ button:focus {
     backdrop-filter: blur(5px);
 }
 
+.ranking-item.silver {
+    animation: silverPulse 4s ease-in-out infinite;
+    border: none;
+    background-clip: padding-box;
+    position: relative;
+    backdrop-filter: blur(5px);
+}
+
+.ranking-item.bronze {
+    animation: bronzePulse 4s ease-in-out infinite;
+    border: none;
+    background-clip: padding-box;
+    position: relative;
+    backdrop-filter: blur(5px);
+}
+
+
 .ranking-item.gold::before {
     content: '';
     position: absolute;
@@ -1122,10 +1143,30 @@ button:focus {
     
 }
 
+/* Ajustes para pantallas pequeñas */
+@media (max-width: 600px) {
+    .ranking-section {
+        font-size: 0.5em;
+    }
+    .difficulty-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    .difficulty-buttons button {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+    .close-button-container button {
+        font-size: 0.8em;
+        padding: 5px 10px;
+    }
+}
+
 /* Ajustes para pantallas medianas */
 @media (min-width: 600px) {
     .ranking-section {
         grid-template-columns: repeat(2, 1fr); /* Dos columnas */
+        font-size: 0.5em;
     }
 }
 
@@ -1133,6 +1174,7 @@ button:focus {
 @media (min-width: 900px) {
     .ranking-section {
         grid-template-columns: repeat(3, 1fr); /* Tres columnas */
+        font-size: 0.7em;
     }
 }
 
@@ -1140,6 +1182,7 @@ button:focus {
 @media (min-width: 1200px) {
     .ranking-section {
         grid-template-columns: repeat(4, 1fr); /* Cuatro columnas */
+        font-size: 0.8em;
     }
 }
 
