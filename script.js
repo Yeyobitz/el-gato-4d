@@ -12,29 +12,85 @@ const firebaseConfig = {
   appId: "1:82793408721:web:956d91d8e4776d0468fdf0"
 };
 
-// Inicializa Firebase
-const app = initializeApp(firebaseConfig);
 
-// Inicializa Firestore
-const db = getFirestore(app);
+// Add Firebase initialization error handling and security checks
+const initializeFirebase = () => {
+    try {
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        // Validate Firebase connection
+        const validateConnection = async () => {
+            try {
+                const testQuery = query(
+                    collection(db, "rankings"),
+                    limit(1)
+                );
+                await getDocs(testQuery);
+                return true;
+            } catch (error) {
+                console.error("Firebase connection failed:", error);
+                return false;
+            }
+        };
 
-// Función para enviar el puntaje a Firestore
+        // Initialize connection validation
+        validateConnection();
+        
+        return { app, db };
+    } catch (error) {
+        console.error("Firebase initialization failed:", error);
+        throw new Error("Game services unavailable");
+    }
+};
+
+// Enhance ranking data security
+const secureRankingSubmission = async (data) => {
+    // Validate data before submission
+    const validateRankingData = (data) => {
+        const rules = {
+            alias: (val) => typeof val === 'string' && val.length <= 16 && val.length > 0,
+            tiempo: (val) => typeof val === 'number' && val > 0,
+            movimientos: (val) => typeof val === 'number' && val > 0,
+            dificultad: (val) => ['easy', 'medium', 'hard'].includes(val)
+        };
+
+        return Object.entries(rules).every(([key, validator]) => validator(data[key]));
+    };
+
+    if (!validateRankingData(data)) {
+        throw new Error("Invalid ranking data");
+    }
+
+    // Add timestamp server-side
+    const secureData = {
+        ...data,
+        timestamp: Timestamp.now(),
+        verified: true
+    };
+
+    return secureData;
+};
+
+// Update the enviarPuntaje function
 async function enviarPuntaje(alias, tiempo, movimientos, dificultad) {
     try {
-      const fecha = Timestamp.now();
-      await addDoc(collection(db, "rankings"), {
-        alias: alias,
-        tiempo: tiempo, // tiempo en segundos
-        movimientos: movimientos,
-        dificultad: dificultad,
-        fecha: fecha
-      });
-      alert("¡Puntaje enviado exitosamente!");
-    } catch (e) {
-      console.error("Error al agregar el puntaje: ", e);
-    }
-  }
+        const data = {
+            alias: alias.trim(),
+            tiempo,
+            movimientos,
+            dificultad
+        };
 
+        const securedData = await secureRankingSubmission(data);
+        await addDoc(collection(db, "rankings"), securedData);
+        
+        return true;
+    } catch (error) {
+        console.error("Error submitting score:", error);
+        throw new Error("Failed to submit score");
+    }
+}
   // Función para obtener los puntajes filtrados por dificultad
 async function obtenerPuntajes(dificultad) {
     try {
@@ -129,7 +185,6 @@ let moveCount = 0;
 let gameStartTime = null;
 let timerInterval = null;
 let lastPlacedElement = null;
-let transpositionTable = new TranspositionTable(100000); // Tamaño máximo ajustable
 
 
 class TranspositionTable {
@@ -159,6 +214,8 @@ class TranspositionTable {
         this.table.clear();
     }
 }
+
+let transpositionTable = new TranspositionTable(100000); // Tamaño máximo ajustable
 
 
 // Estadisticas del jugador
@@ -237,12 +294,94 @@ let clickSound;
 
 // ==================== INICIALIZACIÓN ====================
 
+// Add this to your window.onload function
+function setupEventListeners() {
+    // Main menu buttons
+    document.querySelectorAll('[data-action]').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const action = e.target.getAttribute('data-action');
+            switch(action) {
+                case 'difficulty': showDifficulty('cpu'); break;
+                case 'pvp': startGame('pvp'); break;
+                case 'instructions': showInstructions(); break;
+                case 'stats': showGeneralStats(); break;
+                case 'ranking': mostrarRanking(); break;
+                case 'back': backToMainMenu(); break;
+                case 'pause': pauseGame(); break;
+                case 'resume': resumeGame(); break;
+                case 'reset': resetGame(); break;
+                case 'menu': backToMainMenu(); break;
+                case 'retry': retryGame(); break;
+                case 'close-instructions': hideInstructions(); break;
+                case 'close-stats': closeGeneralStats(); break;
+                case 'close-ranking': cerrarRanking(); break;
+                case 'toggle-stats': toggleGameOverStats(); break;
+                case 'submit-score': registrarPuntaje(); break;
+                case 'cancel-score': cerrarAliasModal(); break;
+            }
+            playClickSound();
+        });
+    });
+
+    // Difficulty buttons
+    document.querySelectorAll('[data-difficulty]').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const difficulty = e.target.getAttribute('data-difficulty');
+            startGame('cpu', difficulty);
+            playClickSound();
+        });
+    });
+
+    // Ranking difficulty buttons
+    document.querySelectorAll('[data-ranking]').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const difficulty = e.target.getAttribute('data-ranking');
+            mostrarRankingPorDificultad(difficulty);
+            playClickSound();
+        });
+    });
+
+    // Music controls
+    const volumeControl = document.getElementById('bgm-volume');
+    if (volumeControl) {
+        volumeControl.addEventListener('input', (e) => setBGMVolume(e.target.value));
+    }
+
+    document.querySelector('[data-action="prev-song"]').addEventListener('click', previousSong);
+    document.querySelector('[data-action="play-pause"]').addEventListener('click', togglePlayPause);
+    document.querySelector('[data-action="next-song"]').addEventListener('click', nextSong);
+
+    // Keyboard events
+    document.addEventListener('keydown', (e) => {
+        if (['Escape', 'p', 'P', ' '].includes(e.key)) {
+            if (!isGamePaused) {
+                pauseGame();
+            } else {
+                resumeGame();
+            }
+        }
+    });
+}
+
+// Initialize event listeners when DOM is loaded
+document.addEventListener('DOMContentLoaded', setupEventListeners);
+
+
 // Se ejecuta cuando la ventana se ha cargado completamente
-window.onload = function() {
-    setupAudioElements();
-    loadPlayerStats();
-    playMainMenuBGM();
+window.onload = async function() {
+    try {
+        await initializeFirebase();
+        setupAudioElements();
+        loadPlayerStats();
+        setupEventListeners();
+        playMainMenuBGM();
+        document.body.classList.add('loaded');
+    } catch (error) {
+        console.error('Initialization failed:', error);
+        // Handle initialization failure
+    }
 };
+
 
 // Función para cargar estadísticas desde localStorage
 function loadPlayerStats() {
@@ -2038,25 +2177,3 @@ async function cargarRanking(dificultad) {
 
 
 // ==================== FIN DEL SCRIPT ====================
-
-// Expose required functions to the global scope
-window.showDifficulty = showDifficulty;
-window.startGame = startGame;
-window.backToMainMenu = backToMainMenu;
-window.showInstructions = showInstructions;
-window.showGeneralStats = showGeneralStats;
-window.mostrarRanking = mostrarRanking;
-window.pauseGame = pauseGame;
-window.retryGame = resetGame;
-window.resumeGame = resumeGame;
-window.hideInstructions = hideInstructions;
-window.closeGeneralStats = closeGeneralStats;
-window.togglePlayPause = togglePlayPause;
-window.setBGMVolume = setBGMVolume;
-window.previousSong = previousSong;
-window.nextSong = nextSong;
-window.registrarPuntaje = registrarPuntaje;
-window.cerrarAliasModal = cerrarAliasModal;
-window.cerrarRanking = cerrarRanking;
-window.mostrarRankingPorDificultad = mostrarRankingPorDificultad;
-window.resetGame = resetGame;

@@ -146,6 +146,12 @@ button:focus {
     transform: scale(1.05);
 }
 
+/* ----Menú de dificultad---- */
+#difficulty-menu {
+    display: none;
+    margin-top: 36px;
+}
+
 /* ==================== TEMPORIZADOR ==================== */
 
 #timer {
