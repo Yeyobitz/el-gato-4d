@@ -129,7 +129,37 @@ let moveCount = 0;
 let gameStartTime = null;
 let timerInterval = null;
 let lastPlacedElement = null;
-let transpositionTable = new Map();
+let transpositionTable = new TranspositionTable(100000); // Tamaño máximo ajustable
+
+
+class TranspositionTable {
+    constructor(maxSize) {
+        this.table = new Map();
+        this.maxSize = maxSize;
+    }
+
+    set(key, value) {
+        if (this.table.size >= this.maxSize) {
+            // Eliminar una entrada aleatoria (o implementar una estrategia LRU)
+            const firstKey = this.table.keys().next().value;
+            this.table.delete(firstKey);
+        }
+        this.table.set(key, value);
+    }
+
+    get(key) {
+        return this.table.get(key);
+    }
+
+    has(key) {
+        return this.table.has(key);
+    }
+
+    clear() {
+        this.table.clear();
+    }
+}
+
 
 // Estadisticas del jugador
 let playerStats = {
@@ -703,12 +733,16 @@ function resetGame() {
 function cpuMove() {
     try {
         showAIThinkingModal();
-        const thinkingTime = Math.random() * 1000 + 2000; // Random time between 2000ms - 3000ms
+        const maxThinkingTime = 2000; // Tiempo máximo en milisegundos
 
         setTimeout(() => {
             hideAIThinkingModal();
 
             setTimeout(() => {
+                const startTime = Date.now();
+                let depth = 1;
+                let bestMove = null;
+
                 const gameState = {
                     mainBoard: mainBoard.map(board => ({
                         cells: board.cells.slice(),
@@ -719,16 +753,38 @@ function cpuMove() {
                 };
 
                 const isMaximizingPlayer = (currentPlayer === 'O');
-                const depth = getDepthByDifficulty();
-                const result = minimaxGame(gameState, depth, -Infinity, Infinity, isMaximizingPlayer);
 
-                let move = result.move;
+                while (true) {
+                    const timeElapsed = Date.now() - startTime;
+                    if (timeElapsed >= maxThinkingTime) {
+                        break;
+                    }
 
-                if (!move) {
-                    // Si Minimax no encuentra un movimiento, seleccionar uno al azar
+                    transpositionTable.clear(); // Limpiar la tabla de transposición en cada iteración
+
+                    const result = minimaxGameWithTime(gameState, depth, -Infinity, Infinity, isMaximizingPlayer, startTime, maxThinkingTime);
+
+                    if (result.move !== null) {
+                        bestMove = result.move;
+                    }
+
+                    if (result.completed) {
+                        // Se completó la búsqueda en esta profundidad
+                        depth++;
+                    } else {
+                        // El tiempo se agotó durante esta profundidad
+                        break;
+                    }
+                }
+
+                if (bestMove) {
+                    handleCellClick(bestMove.boardIndex, bestMove.cellIndex);
+                } else {
+                    // Si no se encontró ningún movimiento (debería ser raro), elegir uno aleatorio
                     const possibleMoves = generatePossibleMoves(gameState);
                     if (possibleMoves.length > 0) {
-                        move = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                        const randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                        handleCellClick(randomMove.boardIndex, randomMove.cellIndex);
                     } else {
                         // No hay movimientos posibles; manejar el fin del juego
                         if (isGameOver(gameState)) {
@@ -737,21 +793,15 @@ function cpuMove() {
                             if (winner) {
                                 handleGameOver(winner);
                             } else {
-                                handleGameOver('¡Empate!');
+                                handleGameOver('Empate');
                             }
                         }
-                        return;
                     }
                 }
 
-                if (move) {
-                    handleCellClick(move.boardIndex, move.cellIndex);
-                }
+            }, 100); // Pequeña demora antes de que la IA haga su movimiento
 
-            }, 100); // 0.1 seconds delay before CPU makes its move
-
-        }, thinkingTime);
-
+        }, 500); // Tiempo de "pensamiento" simulado para mostrar el modal
     } catch (error) {
         console.error("Error en cpuMove:", error);
     }
@@ -771,25 +821,13 @@ function getDepthByDifficulty() {
                 baseDepth = 4;
                 break;
             case 'hard':
-                baseDepth = 8; // Máxima profundidad
+                baseDepth = 8;
                 break;
             default:
                 baseDepth = 4;
         }
 
-        // Reducir la profundidad si el juego está avanzado
-        const emptyCells = mainBoard.reduce((acc, board) => {
-            return acc + board.cells.filter(cell => cell === '').length;
-        }, 0);
-
-        if (emptyCells < 30) {
-            baseDepth += 2;
-        } else if (emptyCells < 20) {
-            baseDepth += 4;
-        } else if (emptyCells < 10) {
-            baseDepth += 6;
-        }
-
+        // Reducir la profundidad si el tiempo es limitado
         return baseDepth;
     } catch (error) {
         console.error("Error en getDepthByDifficulty:", error);
@@ -798,60 +836,89 @@ function getDepthByDifficulty() {
 }
 
 
+
 // Implementación del algoritmo Minimax con poda alfa-beta
-function minimaxGame(gameState, depth, alpha, beta, isMaximizingPlayer) {
+function minimaxGameWithTime(gameState, depth, alpha, beta, isMaximizingPlayer, startTime, maxThinkingTime) {
     try {
+        const timeElapsed = Date.now() - startTime;
+        if (timeElapsed >= maxThinkingTime) {
+            return { score: 0, move: null, completed: false };
+        }
+
         const stateKey = getStateKey(gameState);
 
         if (transpositionTable.has(stateKey)) {
-            return transpositionTable.get(stateKey);
+            return { ...transpositionTable.get(stateKey), completed: true };
         }
 
         if (depth === 0 || isGameOver(gameState)) {
             const evaluation = { score: evaluateGameState(gameState), move: null };
             transpositionTable.set(stateKey, evaluation);
-            return evaluation;
+            return { ...evaluation, completed: true };
         }
 
         const possibleMoves = generatePossibleMoves(gameState);
-        orderMoves(possibleMoves, gameState, isMaximizingPlayer); // Ordenar movimientos
+        orderMoves(possibleMoves, gameState, isMaximizingPlayer);
 
         let bestMove = null;
+        let completed = false;
 
         if (isMaximizingPlayer) {
             let maxEval = -Infinity;
             for (const move of possibleMoves) {
                 const newGameState = applyMove(gameState, move);
-                const result = minimaxGame(newGameState, depth - 1, alpha, beta, false);
+                const result = minimaxGameWithTime(newGameState, depth - 1, alpha, beta, false, startTime, maxThinkingTime);
+
+                if (!result.completed) {
+                    return { score: 0, move: null, completed: false };
+                }
+
                 if (result.score > maxEval) {
                     maxEval = result.score;
                     bestMove = move;
                 }
+
                 alpha = Math.max(alpha, maxEval);
                 if (beta <= alpha) break;
+
+                const timeElapsed = Date.now() - startTime;
+                if (timeElapsed >= maxThinkingTime) {
+                    return { score: 0, move: null, completed: false };
+                }
             }
             const evaluation = { score: maxEval, move: bestMove };
             transpositionTable.set(stateKey, evaluation);
-            return evaluation;
+            return { ...evaluation, completed: true };
         } else {
             let minEval = Infinity;
             for (const move of possibleMoves) {
                 const newGameState = applyMove(gameState, move);
-                const result = minimaxGame(newGameState, depth - 1, alpha, beta, true);
+                const result = minimaxGameWithTime(newGameState, depth - 1, alpha, beta, true, startTime, maxThinkingTime);
+
+                if (!result.completed) {
+                    return { score: 0, move: null, completed: false };
+                }
+
                 if (result.score < minEval) {
                     minEval = result.score;
                     bestMove = move;
                 }
+
                 beta = Math.min(beta, minEval);
                 if (beta <= alpha) break;
+
+                const timeElapsed = Date.now() - startTime;
+                if (timeElapsed >= maxThinkingTime) {
+                    return { score: 0, move: null, completed: false };
+                }
             }
             const evaluation = { score: minEval, move: bestMove };
             transpositionTable.set(stateKey, evaluation);
-            return evaluation;
+            return { ...evaluation, completed: true };
         }
     } catch (error) {
-        console.error("Error en minimaxGame:", error);
-        return { score: 0, move: null };
+        console.error("Error en minimaxGameWithTime:", error);
+        return { score: 0, move: null, completed: false };
     }
 }
 
@@ -868,16 +935,16 @@ function getStateKey(gameState) {
 
 // Función que ordena los movimientos según su potencial
 function orderMoves(moves, gameState, isMaximizingPlayer) {
+    moves.forEach(move => {
+        const newGameState = applyMove(gameState, move);
+        move.score = evaluateGameState(newGameState);
+    });
+
     moves.sort((a, b) => {
-        const gameStateA = applyMove(gameState, a);
-        const scoreA = evaluateGameState(gameStateA);
-
-        const gameStateB = applyMove(gameState, b);
-        const scoreB = evaluateGameState(gameStateB);
-
-        return isMaximizingPlayer ? scoreB - scoreA : scoreA - scoreB;
+        return isMaximizingPlayer ? b.score - a.score : a.score - b.score;
     });
 }
+
 
 // Genera todos los movimientos posibles en el estado actual del juego
 function generatePossibleMoves(gameState) {
@@ -920,21 +987,30 @@ function getMovesForBoard(gameState, boardIndex) {
 // Aplica un movimiento y devuelve un nuevo estado del juego
 function applyMove(gameState, move) {
     try {
-        const newGameState = cloneGameState(gameState);
         const { boardIndex, cellIndex } = move;
-        const board = newGameState.mainBoard[boardIndex];
-        board.cells[cellIndex] = newGameState.currentPlayer;
-        const winner = calculateWinner(board.cells);
-        if (winner) {
-            board.winner = winner;
-        }
+
+        // Clonar solo lo necesario
+        const newGameState = {
+            mainBoard: gameState.mainBoard.slice(),
+            activeBoard: gameState.activeBoard,
+            currentPlayer: gameState.currentPlayer === 'X' ? 'O' : 'X'
+        };
+
+        newGameState.mainBoard = newGameState.mainBoard.map((board, index) => {
+            if (index === boardIndex) {
+                const newBoard = {
+                    cells: board.cells.slice(),
+                    winner: board.winner
+                };
+                newBoard.cells[cellIndex] = gameState.currentPlayer;
+                newBoard.winner = calculateWinner(newBoard.cells);
+                return newBoard;
+            }
+            return board;
+        });
 
         const nextBoard = newGameState.mainBoard[cellIndex];
         newGameState.activeBoard = nextBoard.winner || isBoardFull(nextBoard.cells) ? null : cellIndex;
-        newGameState.currentPlayer = newGameState.currentPlayer === 'X' ? 'O' : 'X';
-
-        // Añadir heurística para penalizar o recompensar enviar al oponente a tableros desfavorables
-        move.score = evaluateBoardForOpponent(nextBoard, newGameState.currentPlayer);
 
         return newGameState;
     } catch (error) {
