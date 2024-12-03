@@ -989,26 +989,29 @@ function applyMove(gameState, move) {
     try {
         const { boardIndex, cellIndex } = move;
 
-        // Clonar solo lo necesario
+        // Clonar el estado del juego de manera eficiente
         const newGameState = {
-            mainBoard: gameState.mainBoard.slice(),
-            activeBoard: gameState.activeBoard,
-            currentPlayer: gameState.currentPlayer === 'X' ? 'O' : 'X'
+            mainBoard: gameState.mainBoard.map((board, index) => {
+                if (index === boardIndex) {
+                    const newBoard = {
+                        cells: board.cells.slice(),
+                        winner: board.winner
+                    };
+                    newBoard.cells[cellIndex] = gameState.currentPlayer; // Usar gameState.currentPlayer
+                    newBoard.winner = calculateWinner(newBoard.cells);
+                    return newBoard;
+                } else {
+                    return {
+                        cells: board.cells.slice(),
+                        winner: board.winner
+                    };
+                }
+            }),
+            activeBoard: null,
+            currentPlayer: gameState.currentPlayer === 'X' ? 'O' : 'X' // Cambiar el jugador
         };
 
-        newGameState.mainBoard = newGameState.mainBoard.map((board, index) => {
-            if (index === boardIndex) {
-                const newBoard = {
-                    cells: board.cells.slice(),
-                    winner: board.winner
-                };
-                newBoard.cells[cellIndex] = gameState.currentPlayer;
-                newBoard.winner = calculateWinner(newBoard.cells);
-                return newBoard;
-            }
-            return board;
-        });
-
+        // Actualizar el tablero activo
         const nextBoard = newGameState.mainBoard[cellIndex];
         newGameState.activeBoard = nextBoard.winner || isBoardFull(nextBoard.cells) ? null : cellIndex;
 
@@ -1096,9 +1099,12 @@ function evaluateGameState(gameState) {
     try {
         const mainBoardState = gameState.mainBoard.map(board => board.winner || '');
         const winner = calculateWinner(mainBoardState);
-        if (winner === 'O') {
+        const aiPlayer = 'O'; // La IA juega con 'O'
+        const humanPlayer = 'X';
+
+        if (winner === aiPlayer) {
             return Infinity;
-        } else if (winner === 'X') {
+        } else if (winner === humanPlayer) {
             return -Infinity;
         } else {
             let score = 0;
@@ -1106,28 +1112,28 @@ function evaluateGameState(gameState) {
             // Evaluar cada mini-tablero
             for (let i = 0; i < 9; i++) {
                 const board = gameState.mainBoard[i];
-                if (board.winner === 'O') {
+                if (board.winner === aiPlayer) {
                     score += 1000;
-                } else if (board.winner === 'X') {
+                } else if (board.winner === humanPlayer) {
                     score -= 1000;
                 } else {
-                    score += evaluateMiniBoard(board.cells);
+                    score += evaluateMiniBoard(board.cells, aiPlayer, humanPlayer);
                 }
             }
 
             // Evaluar el tablero principal
-            score += evaluateMainBoard(mainBoardState);
+            score += evaluateMainBoard(mainBoardState, aiPlayer, humanPlayer);
 
             // Considerar el control del centro en el tablero principal
-            if (mainBoardState[4] === 'O') {
+            if (mainBoardState[4] === aiPlayer) {
                 score += 500;
-            } else if (mainBoardState[4] === 'X') {
+            } else if (mainBoardState[4] === humanPlayer) {
                 score -= 500;
             }
 
-            // Añadir heurística para "forks" y amenazas múltiples
-            score += detectForks(gameState, 'O') * 500;
-            score -= detectForks(gameState, 'X') * 500;
+            // Añadir heurísticas para "forks" y amenazas múltiples
+            score += detectForks(gameState, aiPlayer) * 500;
+            score -= detectForks(gameState, humanPlayer) * 500;
 
             return score;
         }
@@ -1174,7 +1180,7 @@ function countPotentialWins(cells, player) {
 
 
 // Evalúa un mini-tablero
-function evaluateMiniBoard(cells) {
+function evaluateMiniBoard(cells, aiPlayer, humanPlayer) {
     try {
         const lines = [
             [0,1,2], [3,4,5], [6,7,8],
@@ -1185,22 +1191,22 @@ function evaluateMiniBoard(cells) {
 
         // Evaluar líneas
         for (let line of lines) {
-            score += evaluateLine(line.map(index => cells[index]));
+            score += evaluateLine(line.map(index => cells[index]), aiPlayer, humanPlayer);
         }
 
         // Control del centro
-        if (cells[4] === 'O') {
+        if (cells[4] === aiPlayer) {
             score += 15;
-        } else if (cells[4] === 'X') {
+        } else if (cells[4] === humanPlayer) {
             score -= 15;
         }
 
         // Control de las esquinas
         const corners = [0, 2, 6, 8];
         corners.forEach(index => {
-            if (cells[index] === 'O') {
+            if (cells[index] === aiPlayer) {
                 score += 5;
-            } else if (cells[index] === 'X') {
+            } else if (cells[index] === humanPlayer) {
                 score -= 5;
             }
         });
@@ -1214,7 +1220,7 @@ function evaluateMiniBoard(cells) {
 
 
 // Evalúa el tablero principal
-function evaluateMainBoard(mainBoardState) {
+function evaluateMainBoard(mainBoardState, aiPlayer, humanPlayer) {
     try {
         const lines = [
             [0,1,2], [3,4,5], [6,7,8],
@@ -1222,26 +1228,30 @@ function evaluateMainBoard(mainBoardState) {
             [0,4,8], [2,4,6]
         ];
         let score = 0;
-        for (let [a, b, c] of lines) {
-            score += evaluateMainLine([mainBoardState[a], mainBoardState[b], mainBoardState[c]]);
-        }
 
-        // Control del centro del tablero principal
-        if (mainBoardState[4] === 'O') {
-            score += 15; // La IA controla el centro del tablero principal
-        } else if (mainBoardState[4] === 'X') {
-            score -= 15; // El jugador controla el centro
-        }
+        // Evaluar líneas del tablero principal
+        for (let line of lines) {
+            const lineCells = line.map(index => mainBoardState[index]);
+            const countAI = lineCells.filter(cell => cell === aiPlayer).length;
+            const countHuman = lineCells.filter(cell => cell === humanPlayer).length;
+            const countEmpty = lineCells.filter(cell => cell === '').length;
 
-        // Control de las esquinas en el tablero principal
-        const corners = [0, 2, 6, 8];
-        corners.forEach(index => {
-            if (mainBoardState[index] === 'O') {
-                score += 5;
-            } else if (mainBoardState[index] === 'X') {
-                score -= 5;
+            if (countAI === 3) {
+                score += 10000;
+            } else if (countAI === 2 && countEmpty === 1) {
+                score += 1000;
+            } else if (countAI === 1 && countEmpty === 2) {
+                score += 100;
             }
-        });
+
+            if (countHuman === 3) {
+                score -= 10000;
+            } else if (countHuman === 2 && countEmpty === 1) {
+                score -= 1000;
+            } else if (countHuman === 1 && countEmpty === 2) {
+                score -= 100;
+            }
+        }
 
         return score;
     } catch (error) {
@@ -1251,26 +1261,26 @@ function evaluateMainBoard(mainBoardState) {
 }
 
 // Evalúa una línea en el mini-tablero
-function evaluateLine(line) {
+function evaluateLine(line, aiPlayer, humanPlayer) {
     try {
         let score = 0;
-        const countO = line.filter(cell => cell === 'O').length;
-        const countX = line.filter(cell => cell === 'X').length;
+        const countAI = line.filter(cell => cell === aiPlayer).length;
+        const countHuman = line.filter(cell => cell === humanPlayer).length;
         const countEmpty = line.filter(cell => cell === '').length;
 
-        if (countO === 3) {
+        if (countAI === 3) {
             score += 100;
-        } else if (countO === 2 && countEmpty === 1) {
+        } else if (countAI === 2 && countEmpty === 1) {
             score += 10;
-        } else if (countO === 1 && countEmpty === 2) {
+        } else if (countAI === 1 && countEmpty === 2) {
             score += 1;
         }
 
-        if (countX === 3) {
+        if (countHuman === 3) {
             score -= 100;
-        } else if (countX === 2 && countEmpty === 1) {
+        } else if (countHuman === 2 && countEmpty === 1) {
             score -= 10;
-        } else if (countX === 1 && countEmpty === 2) {
+        } else if (countHuman === 1 && countEmpty === 2) {
             score -= 1;
         }
 
