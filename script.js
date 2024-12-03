@@ -328,6 +328,15 @@ function setupEventListeners() {
         });
     });
 
+    // Stats difficulty buttons
+    document.querySelectorAll('[data-stats]').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const difficulty = e.target.getAttribute('data-stats');
+            mostrarEstadisticasPorDificultad(difficulty);
+            playClickSound();
+        });
+    });
+
     // Music controls
     const volumeControl = document.getElementById('bgm-volume');
     if (volumeControl) {
@@ -349,6 +358,7 @@ function setupEventListeners() {
         }
     });
 }
+
 
 // Initialize event listeners when DOM is loaded
 document.addEventListener('DOMContentLoaded', setupEventListeners);
@@ -2019,53 +2029,51 @@ function capitalizeFirstLetter(string) {
 }
 
 // Función para mostrar el modal de estadísticas generales desde el menú principal
+// Update showGeneralStats function
 function showGeneralStats() {
-    // Ocultar otros menús
     toggleDisplay('main-menu', false);
     toggleDisplay('difficulty-menu', false);
-
-    // Mostrar el modal de estadísticas generales
     toggleDisplay('general-stats-modal', true);
-
-    // Mostrar estadísticas de ambos modos
-    showOverallStats();
+    
+    // Show initial stats (medium difficulty by default)
+    mostrarEstadisticasPorDificultad('medium');
 }
+
+
 
 // Función para mostrar las estadísticas generales
-function showOverallStats() {
-    const overallStatsContainer = document.querySelector('#general-stats-modal .overall-statistics');
-    overallStatsContainer.innerHTML = ''; // Limpiar contenido anterior
+function showOverallStats(difficulty) {
+    const statsSection = document.getElementById(`stats-${difficulty}`);
+    statsSection.innerHTML = ''; // Clear previous content
 
-    // Actualizar estadísticas de P1 vs IA por dificultad
-    ['easy', 'medium', 'hard'].forEach(diff => {
-        const stats = playerStats.p1_vs_ai[diff];
+    if (difficulty === 'pvp') {
+        const statsPVP = playerStats.p1_vs_p2;
+        statsSection.innerHTML += `<h3>P1 vs P2</h3>`;
+        statsSection.innerHTML += generateStatisticLine('Partidas Jugadas', statsPVP.gamesPlayed);
+        statsSection.innerHTML += generateStatisticLine('Victorias de X', statsPVP.winsX);
+        statsSection.innerHTML += generateStatisticLine('Victorias de O', statsPVP.winsO);
+        statsSection.innerHTML += generateStatisticLine('Empates', statsPVP.draws);
+        statsSection.innerHTML += generateStatisticLine('Partida más Larga', statsPVP.longestGameMoves);
+        statsSection.innerHTML += generateStatisticLine('Mayor número de Mini-Tableros', statsPVP.highestBoardsWon);
+        return;
+    }
 
-        overallStatsContainer.innerHTML += `<h3>P1 vs IA - ${capitalizeFirstLetter(diff)}</h3>`;
-        overallStatsContainer.innerHTML += generateStatisticLine('Partidas Jugadas', stats.gamesPlayed);
-        overallStatsContainer.innerHTML += generateStatisticLine('Victorias', stats.wins);
-        overallStatsContainer.innerHTML += generateStatisticLine('Derrotas', stats.losses);
-        overallStatsContainer.innerHTML += generateStatisticLine('Empates', stats.draws);
+    const stats = playerStats.p1_vs_ai[difficulty];
+    
+    statsSection.innerHTML += `<h3>P1 vs IA - ${capitalizeFirstLetter(difficulty)}</h3>`;
+    statsSection.innerHTML += generateStatisticLine('Partidas Jugadas', stats.gamesPlayed);
+    statsSection.innerHTML += generateStatisticLine('Victorias', stats.wins);
+    statsSection.innerHTML += generateStatisticLine('Derrotas', stats.losses);
+    statsSection.innerHTML += generateStatisticLine('Empates', stats.draws);
 
-        const winPercentage = stats.gamesPlayed > 0 ? ((stats.wins / stats.gamesPlayed) * 100).toFixed(2) + '%' : '0%';
-        overallStatsContainer.innerHTML += generateStatisticLine('% de Victorias', winPercentage);
+    const winPercentage = stats.gamesPlayed > 0 ? ((stats.wins / stats.gamesPlayed) * 100).toFixed(2) + '%' : '0%';
+    statsSection.innerHTML += generateStatisticLine('% de Victorias', winPercentage);
 
-        const bestTime = stats.bestTime ? formatTime(stats.bestTime) : 'N/A';
-        overallStatsContainer.innerHTML += generateStatisticLine('Mejor Tiempo', bestTime);
-
-        overallStatsContainer.innerHTML += generateStatisticLine('Mejor Racha', stats.bestWinStreak);
-    });
-
-    // Actualizar estadísticas de P1 vs P2
-    const statsPVP = playerStats.p1_vs_p2;
-
-    overallStatsContainer.innerHTML += `<h3>P1 vs P2</h3>`;
-    overallStatsContainer.innerHTML += generateStatisticLine('Partidas Jugadas', statsPVP.gamesPlayed);
-    overallStatsContainer.innerHTML += generateStatisticLine('Victorias de X', statsPVP.winsX);
-    overallStatsContainer.innerHTML += generateStatisticLine('Victorias de O', statsPVP.winsO);
-    overallStatsContainer.innerHTML += generateStatisticLine('Empates', statsPVP.draws);
-    overallStatsContainer.innerHTML += generateStatisticLine('Partida más Larga (Movimientos)', statsPVP.longestGameMoves);
-    overallStatsContainer.innerHTML += generateStatisticLine('Mayor número de Mini-Tableros Ganados', statsPVP.highestBoardsWon);
+    const bestTime = stats.bestTime ? formatTime(stats.bestTime) : 'N/A';
+    statsSection.innerHTML += generateStatisticLine('Mejor Tiempo', bestTime);
+    statsSection.innerHTML += generateStatisticLine('Mejor Racha', stats.bestWinStreak);
 }
+
 
 // Función para cerrar el modal de estadísticas generales
 function closeGeneralStats() {
@@ -2144,4 +2152,19 @@ async function cargarRanking(dificultad) {
         
         rankingContainer.appendChild(rankingItem);
     });
+}
+
+function mostrarEstadisticasPorDificultad(dificultad) {
+    document.querySelectorAll('.stats-section').forEach(section => {
+        section.classList.remove('active');
+    });
+    
+    document.getElementById(`stats-${dificultad}`).classList.add('active');
+    
+    document.querySelectorAll('.stats-difficulty-buttons button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector(`[data-stats="${dificultad}"]`).classList.add('active');
+    
+    showOverallStats(dificultad);
 }
