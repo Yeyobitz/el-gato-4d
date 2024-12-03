@@ -481,7 +481,7 @@ function updateMessage(message) {
     }
 }
 
-// Verifica si hay un ganador en el mini-tablero
+// Verifica si hay un ganador en el mini-tablerox|
 function checkMiniBoardWinner(miniBoard, boardIndex) {
     try {
         const winner = calculateWinner(miniBoard.cells);
