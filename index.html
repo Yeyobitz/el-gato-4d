@@ -8,7 +8,38 @@
     <meta name="description" content="Juega al innovador Super TikTakToe, también conocido como Gato Multiuniversal. Desafía a tus amigos o a la IA en este emocionante juego de estrategia en cuatro dimensiones.">
     <meta name="keywords" content="Super TikTakToe, Gato Multiuniversal, juego de mesa, juego en línea, tic-tac-toe 4D, tres en raya 4D, juego de estrategia, juego multijugador, IA, inteligencia artificial, Ceros y Cruces, Tres en Línea, Tatetí, Triqui, La Vieja, Michi, Totito, Equis Cero, Gato Super, OXO, Noughts and Crosses, Jogo da Velha, Jogo do Galo, Zero o Cruz, XOXO, Morpion, Ta Te Ti, Cat's Game, Quantum TicTacToe, Multidimensional TicTacToe">
     <meta name="author" content="Yeyobitz">
-    
+
+    <!-- Add these security headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="Permissions-Policy" content="interest-cohort=()">
+    <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains">
+    <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' 'nonce-${nonce}' https://www.gstatic.com/firebasejs/;
+    connect-src 'self' https://*.firebaseio.com https://*.firebase.com;
+    style-src 'self' https://fonts.googleapis.com;
+    font-src 'self' https://fonts.gstatic.com;
+    img-src 'self' data:;
+    media-src 'self';
+    frame-ancestors 'none';
+    form-action 'self';
+    base-uri 'self';
+    object-src 'none'
+    ">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    <meta http-equiv="Feature-Policy" content="
+        accelerometer 'none';
+        camera 'none';
+        geolocation 'none';
+        gyroscope 'none';
+        magnetometer 'none';
+        microphone 'none';
+        payment 'none';
+        usb 'none'
+    ">
+
     <!-- Open Graph Meta Tags -->
     <meta property="og:title" content="Super TikTakToe - Multiuniversal Gato">
     <meta property="og:description" content="Desafía a tus amigos o a la IA en el innovador juego Super TikTakToe. ¡Una nueva dimensión en juegos de estrategia!">
@@ -59,6 +90,9 @@
     </script>
 </head>
 <body>
+    <!-- Preload critical resources -->
+<link rel="preload" href="fonts/PressStart2P-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="music/main_menu.ogg" as="audio">
     <!-- Fondo de estrellas -->
     <section id="stars">
         <span></span>
@@ -326,3 +360,7 @@
 <script src="script.js" type="module"></script>
 </body>
 </html>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://www.gstatic.com">
