@@ -129,6 +129,37 @@ let moveCount = 0;
 let gameStartTime = null;
 let timerInterval = null;
 let lastPlacedElement = null;
+let transpositionTable = new TranspositionTable(100000); // Tamaño máximo ajustable
+
+
+class TranspositionTable {
+    constructor(maxSize) {
+        this.table = new Map();
+        this.maxSize = maxSize;
+    }
+
+    set(key, value) {
+        if (this.table.size >= this.maxSize) {
+            // Eliminar una entrada aleatoria (o implementar una estrategia LRU)
+            const firstKey = this.table.keys().next().value;
+            this.table.delete(firstKey);
+        }
+        this.table.set(key, value);
+    }
+
+    get(key) {
+        return this.table.get(key);
+    }
+
+    has(key) {
+        return this.table.has(key);
+    }
+
+    clear() {
+        this.table.clear();
+    }
+}
+
 
 // Estadisticas del jugador
 let playerStats = {
@@ -417,30 +448,58 @@ function drawMiniBoardCells(miniBoard, miniBoardElement, boardIndex, isActiveBoa
 function handleCellClick(boardIndex, cellIndex) {
     try {
         if (!gameActive || isGamePaused) return;
+
+        // Verificar si el jugador debe jugar en un tablero específico
         if (activeBoard !== null && activeBoard !== boardIndex) {
             updateMessage(`Debes jugar en el tablero ${activeBoard + 1}`);
             return;
         }
+
         const miniBoard = mainBoard[boardIndex];
+
+        // Verificar si la celda ya está ocupada
         if (miniBoard.cells[cellIndex] !== '') return;
 
+        // Colocar la ficha del jugador en la celda
         miniBoard.cells[cellIndex] = currentPlayer;
         moveCount++;
         playPlaceSound();
         animateCellPlacement(miniBoard, cellIndex);
+
+        // Verificar si hay un ganador en el mini-tablero
         checkMiniBoardWinner(miniBoard, boardIndex);
+
+        // Actualizar el tablero activo basado en el último movimiento
         updateActiveBoard(cellIndex);
+
+        // Cambiar al siguiente jugador
         switchPlayer();
+
+        // Limpiar la tabla de transposición después de cada movimiento del jugador
+        if (typeof transpositionTable !== 'undefined') {
+            transpositionTable.clear();
+        }
+
+        // Redibujar el tablero
         drawBoard();
+
+        // Verificar si hay un ganador en el juego principal
         checkGameWinner();
+
         if (!gameActive) return;
+
+        // Verificar si el empate es inminente
         if (isDrawImminent()) {
             gameActive = false;
             clearInterval(timerInterval);
             showDrawModal();
             return;
         }
+
+        // Actualizar el mensaje de turno
         updateMessage(`Turno de ${currentPlayer}`);
+
+        // Si el modo es contra la IA y es el turno de la IA, hacer que la IA juegue
         if (gameMode === 'cpu' && currentPlayer === 'O') {
             cpuMove();
         }
@@ -674,12 +733,16 @@ function resetGame() {
 function cpuMove() {
     try {
         showAIThinkingModal();
-        const thinkingTime = Math.random() * 1000 + 2000; // Random time between 2000ms - 3000ms
+        const maxThinkingTime = 2000; // Tiempo máximo en milisegundos
 
         setTimeout(() => {
             hideAIThinkingModal();
 
             setTimeout(() => {
+                const startTime = Date.now();
+                let depth = 1;
+                let bestMove = null;
+
                 const gameState = {
                     mainBoard: mainBoard.map(board => ({
                         cells: board.cells.slice(),
@@ -690,16 +753,38 @@ function cpuMove() {
                 };
 
                 const isMaximizingPlayer = (currentPlayer === 'O');
-                const depth = getDepthByDifficulty();
-                const result = minimaxGame(gameState, depth, -Infinity, Infinity, isMaximizingPlayer);
 
-                let move = result.move;
+                while (true) {
+                    const timeElapsed = Date.now() - startTime;
+                    if (timeElapsed >= maxThinkingTime) {
+                        break;
+                    }
 
-                if (!move) {
-                    // Si Minimax no encuentra un movimiento, seleccionar uno al azar
+                    transpositionTable.clear(); // Limpiar la tabla de transposición en cada iteración
+
+                    const result = minimaxGameWithTime(gameState, depth, -Infinity, Infinity, isMaximizingPlayer, startTime, maxThinkingTime);
+
+                    if (result.move !== null) {
+                        bestMove = result.move;
+                    }
+
+                    if (result.completed) {
+                        // Se completó la búsqueda en esta profundidad
+                        depth++;
+                    } else {
+                        // El tiempo se agotó durante esta profundidad
+                        break;
+                    }
+                }
+
+                if (bestMove) {
+                    handleCellClick(bestMove.boardIndex, bestMove.cellIndex);
+                } else {
+                    // Si no se encontró ningún movimiento (debería ser raro), elegir uno aleatorio
                     const possibleMoves = generatePossibleMoves(gameState);
                     if (possibleMoves.length > 0) {
-                        move = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                        const randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                        handleCellClick(randomMove.boardIndex, randomMove.cellIndex);
                     } else {
                         // No hay movimientos posibles; manejar el fin del juego
                         if (isGameOver(gameState)) {
@@ -708,21 +793,15 @@ function cpuMove() {
                             if (winner) {
                                 handleGameOver(winner);
                             } else {
-                                handleGameOver('¡Empate!');
+                                handleGameOver('Empate');
                             }
                         }
-                        return;
                     }
                 }
 
-                if (move) {
-                    handleCellClick(move.boardIndex, move.cellIndex);
-                }
+            }, 100); // Pequeña demora antes de que la IA haga su movimiento
 
-            }, 100); // 0.1 seconds delay before CPU makes its move
-
-        }, thinkingTime);
-
+        }, 500); // Tiempo de "pensamiento" simulado para mostrar el modal
     } catch (error) {
         console.error("Error en cpuMove:", error);
     }
@@ -733,63 +812,139 @@ function cpuMove() {
 // Obtiene la profundidad de búsqueda basada en la dificultad
 function getDepthByDifficulty() {
     try {
+        let baseDepth;
         switch (difficulty) {
             case 'easy':
-                return 1;
+                baseDepth = 2;
+                break;
             case 'medium':
-                return 2;
+                baseDepth = 4;
+                break;
             case 'hard':
-                return 3;
+                baseDepth = 8;
+                break;
             default:
-                return 2;
+                baseDepth = 4;
         }
+
+        // Reducir la profundidad si el tiempo es limitado
+        return baseDepth;
     } catch (error) {
         console.error("Error en getDepthByDifficulty:", error);
-        return 2;
+        return 4;
     }
 }
 
+
+
 // Implementación del algoritmo Minimax con poda alfa-beta
-function minimaxGame(gameState, depth, alpha, beta, isMaximizingPlayer) {
+function minimaxGameWithTime(gameState, depth, alpha, beta, isMaximizingPlayer, startTime, maxThinkingTime) {
     try {
-        if (depth === 0 || isGameOver(gameState)) {
-            return { score: evaluateGameState(gameState), move: null };
+        const timeElapsed = Date.now() - startTime;
+        if (timeElapsed >= maxThinkingTime) {
+            return { score: 0, move: null, completed: false };
         }
+
+        const stateKey = getStateKey(gameState);
+
+        if (transpositionTable.has(stateKey)) {
+            return { ...transpositionTable.get(stateKey), completed: true };
+        }
+
+        if (depth === 0 || isGameOver(gameState)) {
+            const evaluation = { score: evaluateGameState(gameState), move: null };
+            transpositionTable.set(stateKey, evaluation);
+            return { ...evaluation, completed: true };
+        }
+
         const possibleMoves = generatePossibleMoves(gameState);
+        orderMoves(possibleMoves, gameState, isMaximizingPlayer);
+
         let bestMove = null;
+        let completed = false;
 
         if (isMaximizingPlayer) {
             let maxEval = -Infinity;
             for (const move of possibleMoves) {
                 const newGameState = applyMove(gameState, move);
-                const result = minimaxGame(newGameState, depth - 1, alpha, beta, false);
+                const result = minimaxGameWithTime(newGameState, depth - 1, alpha, beta, false, startTime, maxThinkingTime);
+
+                if (!result.completed) {
+                    return { score: 0, move: null, completed: false };
+                }
+
                 if (result.score > maxEval) {
                     maxEval = result.score;
                     bestMove = move;
                 }
+
                 alpha = Math.max(alpha, maxEval);
                 if (beta <= alpha) break;
+
+                const timeElapsed = Date.now() - startTime;
+                if (timeElapsed >= maxThinkingTime) {
+                    return { score: 0, move: null, completed: false };
+                }
             }
-            return { score: maxEval, move: bestMove };
+            const evaluation = { score: maxEval, move: bestMove };
+            transpositionTable.set(stateKey, evaluation);
+            return { ...evaluation, completed: true };
         } else {
             let minEval = Infinity;
             for (const move of possibleMoves) {
                 const newGameState = applyMove(gameState, move);
-                const result = minimaxGame(newGameState, depth - 1, alpha, beta, true);
+                const result = minimaxGameWithTime(newGameState, depth - 1, alpha, beta, true, startTime, maxThinkingTime);
+
+                if (!result.completed) {
+                    return { score: 0, move: null, completed: false };
+                }
+
                 if (result.score < minEval) {
                     minEval = result.score;
                     bestMove = move;
                 }
+
                 beta = Math.min(beta, minEval);
                 if (beta <= alpha) break;
+
+                const timeElapsed = Date.now() - startTime;
+                if (timeElapsed >= maxThinkingTime) {
+                    return { score: 0, move: null, completed: false };
+                }
             }
-            return { score: minEval, move: bestMove };
+            const evaluation = { score: minEval, move: bestMove };
+            transpositionTable.set(stateKey, evaluation);
+            return { ...evaluation, completed: true };
         }
     } catch (error) {
-        console.error("Error en minimaxGame:", error);
-        return { score: 0, move: null };
+        console.error("Error en minimaxGameWithTime:", error);
+        return { score: 0, move: null, completed: false };
     }
 }
+
+// función para generar una clave única para el estado del juego
+function getStateKey(gameState) {
+    let key = '';
+    gameState.mainBoard.forEach(board => {
+        key += (board.winner || '-') + board.cells.join('');
+    });
+    key += gameState.activeBoard !== null ? gameState.activeBoard : '-';
+    key += gameState.currentPlayer;
+    return key;
+}
+
+// Función que ordena los movimientos según su potencial
+function orderMoves(moves, gameState, isMaximizingPlayer) {
+    moves.forEach(move => {
+        const newGameState = applyMove(gameState, move);
+        move.score = evaluateGameState(newGameState);
+    });
+
+    moves.sort((a, b) => {
+        return isMaximizingPlayer ? b.score - a.score : a.score - b.score;
+    });
+}
+
 
 // Genera todos los movimientos posibles en el estado actual del juego
 function generatePossibleMoves(gameState) {
@@ -832,23 +987,87 @@ function getMovesForBoard(gameState, boardIndex) {
 // Aplica un movimiento y devuelve un nuevo estado del juego
 function applyMove(gameState, move) {
     try {
-        const newGameState = JSON.parse(JSON.stringify(gameState)); // Clona el estado
         const { boardIndex, cellIndex } = move;
-        const board = newGameState.mainBoard[boardIndex];
-        board.cells[cellIndex] = newGameState.currentPlayer;
-        const winner = calculateWinner(board.cells);
-        if (winner) {
-            board.winner = winner;
-        }
+
+        // Clonar el estado del juego de manera eficiente
+        const newGameState = {
+            mainBoard: gameState.mainBoard.map((board, index) => {
+                if (index === boardIndex) {
+                    const newBoard = {
+                        cells: board.cells.slice(),
+                        winner: board.winner
+                    };
+                    newBoard.cells[cellIndex] = gameState.currentPlayer; // Usar gameState.currentPlayer
+                    newBoard.winner = calculateWinner(newBoard.cells);
+                    return newBoard;
+                } else {
+                    return {
+                        cells: board.cells.slice(),
+                        winner: board.winner
+                    };
+                }
+            }),
+            activeBoard: null,
+            currentPlayer: gameState.currentPlayer === 'X' ? 'O' : 'X' // Cambiar el jugador
+        };
+
+        // Actualizar el tablero activo
         const nextBoard = newGameState.mainBoard[cellIndex];
         newGameState.activeBoard = nextBoard.winner || isBoardFull(nextBoard.cells) ? null : cellIndex;
-        newGameState.currentPlayer = newGameState.currentPlayer === 'X' ? 'O' : 'X';
+
         return newGameState;
     } catch (error) {
         console.error("Error en applyMove:", error);
         return gameState;
     }
 }
+
+// Evalúa el tablero al que se enviará al oponente
+function evaluateBoardForOpponent(board, opponent) {
+    try {
+        if (board.winner) {
+            return 10; // Enviar al oponente a un tablero ya ganado es bueno
+        }
+        if (isBoardFull(board.cells)) {
+            return 5; // Enviar al oponente a un tablero lleno es aceptable
+        }
+        // Si el tablero es favorable para el oponente, penalizar
+        const opponentWinningChances = evaluateMiniBoardForPlayer(board.cells, opponent);
+        return -opponentWinningChances;
+    } catch (error) {
+        console.error("Error en evaluateBoardForOpponent:", error);
+        return 0;
+    }
+}
+
+// Evalúa las oportunidades de victoria para un jugador en un mini-tablero
+function evaluateMiniBoardForPlayer(cells, player) {
+    try {
+        const lines = [
+            [0,1,2], [3,4,5], [6,7,8],
+            [0,3,6], [1,4,7], [2,5,8],
+            [0,4,8], [2,4,6]
+        ];
+        let score = 0;
+        for (let [a, b, c] of lines) {
+            const line = [cells[a], cells[b], cells[c]];
+            const countPlayer = line.filter(cell => cell === player).length;
+            const countEmpty = line.filter(cell => cell === '').length;
+
+            if (countPlayer === 2 && countEmpty === 1) {
+                score += 5; // Oportunidad de victoria en el próximo turno
+            } else if (countPlayer === 1 && countEmpty === 2) {
+                score += 1; // Potencial a mediano plazo
+            }
+        }
+        return score;
+    } catch (error) {
+        console.error("Error en evaluateMiniBoardForPlayer:", error);
+        return 0;
+    }
+}
+
+
 
 // Verifica si el juego ha terminado
 function isGameOver(gameState) {
@@ -861,28 +1080,61 @@ function isGameOver(gameState) {
     }
 }
 
+// Función para clonar el estado del juego de forma más eficiente
+function cloneGameState(gameState) {
+    const newGameState = {
+        mainBoard: gameState.mainBoard.map(board => ({
+            cells: board.cells.slice(),
+            winner: board.winner
+        })),
+        activeBoard: gameState.activeBoard,
+        currentPlayer: gameState.currentPlayer
+    };
+    return newGameState;
+}
+
+
 // Evalúa el estado del juego para la IA
 function evaluateGameState(gameState) {
     try {
         const mainBoardState = gameState.mainBoard.map(board => board.winner || '');
         const winner = calculateWinner(mainBoardState);
-        if (winner === 'O') {
+        const aiPlayer = 'O'; // La IA juega con 'O'
+        const humanPlayer = 'X';
+
+        if (winner === aiPlayer) {
             return Infinity;
-        } else if (winner === 'X') {
+        } else if (winner === humanPlayer) {
             return -Infinity;
         } else {
             let score = 0;
+
+            // Evaluar cada mini-tablero
             for (let i = 0; i < 9; i++) {
                 const board = gameState.mainBoard[i];
-                if (board.winner === 'O') {
-                    score += 100;
-                } else if (board.winner === 'X') {
-                    score -= 100;
+                if (board.winner === aiPlayer) {
+                    score += 1000;
+                } else if (board.winner === humanPlayer) {
+                    score -= 1000;
                 } else {
-                    score += evaluateMiniBoard(board.cells);
+                    score += evaluateMiniBoard(board.cells, aiPlayer, humanPlayer);
                 }
             }
-            score += evaluateMainBoard(mainBoardState);
+
+            // Evaluar el tablero principal
+            score += evaluateMainBoard(mainBoardState, aiPlayer, humanPlayer);
+
+            // Considerar el control del centro en el tablero principal
+            if (mainBoardState[4] === aiPlayer) {
+                score += 500;
+            } else if (mainBoardState[4] === humanPlayer) {
+                score -= 500;
+            }
+
+            // Añadir heurísticas para "forks" y amenazas múltiples
+            score += detectForks(gameState, aiPlayer) * 500;
+            score -= detectForks(gameState, humanPlayer) * 500;
+
             return score;
         }
     } catch (error) {
@@ -891,8 +1143,44 @@ function evaluateGameState(gameState) {
     }
 }
 
+// Función para detectar "forks"
+function detectForks(gameState, player) {
+    let forks = 0;
+    for (let i = 0; i < 9; i++) {
+        const board = gameState.mainBoard[i];
+        if (!board.winner && !isBoardFull(board.cells)) {
+            const potentialWins = countPotentialWins(board.cells, player);
+            if (potentialWins >= 2) {
+                forks++;
+            }
+        }
+    }
+    return forks;
+}
+
+function countPotentialWins(cells, player) {
+    const lines = [
+        [0,1,2], [3,4,5], [6,7,8],
+        [0,3,6], [1,4,7], [2,5,8],
+        [0,4,8], [2,4,6]
+    ];
+    let potentialWins = 0;
+    for (let line of lines) {
+        const [a, b, c] = line;
+        if ((cells[a] === player || cells[a] === '') &&
+            (cells[b] === player || cells[b] === '') &&
+            (cells[c] === player || cells[c] === '')) {
+            if (cells[a] === '' || cells[b] === '' || cells[c] === '') {
+                potentialWins++;
+            }
+        }
+    }
+    return potentialWins;
+}
+
+
 // Evalúa un mini-tablero
-function evaluateMiniBoard(cells) {
+function evaluateMiniBoard(cells, aiPlayer, humanPlayer) {
     try {
         const lines = [
             [0,1,2], [3,4,5], [6,7,8],
@@ -900,9 +1188,29 @@ function evaluateMiniBoard(cells) {
             [0,4,8], [2,4,6]
         ];
         let score = 0;
-        for (let [a, b, c] of lines) {
-            score += evaluateLine([cells[a], cells[b], cells[c]]);
+
+        // Evaluar líneas
+        for (let line of lines) {
+            score += evaluateLine(line.map(index => cells[index]), aiPlayer, humanPlayer);
         }
+
+        // Control del centro
+        if (cells[4] === aiPlayer) {
+            score += 15;
+        } else if (cells[4] === humanPlayer) {
+            score -= 15;
+        }
+
+        // Control de las esquinas
+        const corners = [0, 2, 6, 8];
+        corners.forEach(index => {
+            if (cells[index] === aiPlayer) {
+                score += 5;
+            } else if (cells[index] === humanPlayer) {
+                score -= 5;
+            }
+        });
+
         return score;
     } catch (error) {
         console.error("Error en evaluateMiniBoard:", error);
@@ -910,8 +1218,9 @@ function evaluateMiniBoard(cells) {
     }
 }
 
+
 // Evalúa el tablero principal
-function evaluateMainBoard(mainBoardState) {
+function evaluateMainBoard(mainBoardState, aiPlayer, humanPlayer) {
     try {
         const lines = [
             [0,1,2], [3,4,5], [6,7,8],
@@ -919,9 +1228,31 @@ function evaluateMainBoard(mainBoardState) {
             [0,4,8], [2,4,6]
         ];
         let score = 0;
-        for (let [a, b, c] of lines) {
-            score += evaluateMainLine([mainBoardState[a], mainBoardState[b], mainBoardState[c]]);
+
+        // Evaluar líneas del tablero principal
+        for (let line of lines) {
+            const lineCells = line.map(index => mainBoardState[index]);
+            const countAI = lineCells.filter(cell => cell === aiPlayer).length;
+            const countHuman = lineCells.filter(cell => cell === humanPlayer).length;
+            const countEmpty = lineCells.filter(cell => cell === '').length;
+
+            if (countAI === 3) {
+                score += 10000;
+            } else if (countAI === 2 && countEmpty === 1) {
+                score += 1000;
+            } else if (countAI === 1 && countEmpty === 2) {
+                score += 100;
+            }
+
+            if (countHuman === 3) {
+                score -= 10000;
+            } else if (countHuman === 2 && countEmpty === 1) {
+                score -= 1000;
+            } else if (countHuman === 1 && countEmpty === 2) {
+                score -= 100;
+            }
         }
+
         return score;
     } catch (error) {
         console.error("Error en evaluateMainBoard:", error);
@@ -930,23 +1261,29 @@ function evaluateMainBoard(mainBoardState) {
 }
 
 // Evalúa una línea en el mini-tablero
-function evaluateLine(line) {
+function evaluateLine(line, aiPlayer, humanPlayer) {
     try {
         let score = 0;
-        if (line.filter(cell => cell === 'O').length === 3) {
+        const countAI = line.filter(cell => cell === aiPlayer).length;
+        const countHuman = line.filter(cell => cell === humanPlayer).length;
+        const countEmpty = line.filter(cell => cell === '').length;
+
+        if (countAI === 3) {
+            score += 100;
+        } else if (countAI === 2 && countEmpty === 1) {
             score += 10;
-        } else if (line.filter(cell => cell === 'O').length === 2 && line.includes('')) {
-            score += 5;
-        } else if (line.filter(cell => cell === 'O').length === 1 && line.filter(cell => cell === '').length === 2) {
+        } else if (countAI === 1 && countEmpty === 2) {
             score += 1;
         }
-        if (line.filter(cell => cell === 'X').length === 3) {
+
+        if (countHuman === 3) {
+            score -= 100;
+        } else if (countHuman === 2 && countEmpty === 1) {
             score -= 10;
-        } else if (line.filter(cell => cell === 'X').length === 2 && line.includes('')) {
-            score -= 5;
-        } else if (line.filter(cell => cell === 'X').length === 1 && line.filter(cell => cell === '').length === 2) {
+        } else if (countHuman === 1 && countEmpty === 2) {
             score -= 1;
         }
+
         return score;
     } catch (error) {
         console.error("Error en evaluateLine:", error);
