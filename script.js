@@ -9,40 +9,29 @@ const firebaseConfig = {
   projectId: "multiuniversalgato",
   storageBucket: "multiuniversalgato.firebasestorage.app",
   messagingSenderId: "82793408721",
-  appId: "1:82793408721:web:956d91d8e4776d0468fdf0"
+  appId: "1:82793408721:web:956d91d8e4776d0468fdf0",
 };
 
 
 // Add Firebase initialization error handling and security checks
-const initializeFirebase = () => {
+let db; // Global database reference
+
+const initializeFirebase = async () => {
     try {
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        db = getFirestore(app);
         
-        // Validate Firebase connection
-        const validateConnection = async () => {
-            try {
-                const testQuery = query(
-                    collection(db, "rankings"),
-                    limit(1)
-                );
-                await getDocs(testQuery);
-                return true;
-            } catch (error) {
-                console.error("Firebase connection failed:", error);
-                return false;
-            }
-        };
-
-        // Initialize connection validation
-        validateConnection();
+        // Test connection
+        const testQuery = query(collection(db, "rankings"), limit(1));
+        await getDocs(testQuery);
         
-        return { app, db };
+        return true;
     } catch (error) {
         console.error("Firebase initialization failed:", error);
-        throw new Error("Game services unavailable");
+        return false;
     }
 };
+
 
 // Enhance ranking data security
 const secureRankingSubmission = async (data) => {
@@ -92,25 +81,23 @@ async function enviarPuntaje(alias, tiempo, movimientos, dificultad) {
     }
 }
   // Función para obtener los puntajes filtrados por dificultad
-async function obtenerPuntajes(dificultad) {
+  async function obtenerPuntajes(dificultad) {
+    if (!db) return [];
+    
     try {
-      const q = query(
-        collection(db, "rankings"),
-        where("dificultad", "==", dificultad),
-        orderBy("tiempo", "asc"),
-        limit(10)
-      );
-      const querySnapshot = await getDocs(q);
-      let resultados = [];
-      querySnapshot.forEach((doc) => {
-        resultados.push(doc.data());
-      });
-      return resultados;
+        const q = query(
+            collection(db, "rankings"),
+            where("dificultad", "==", dificultad),
+            orderBy("tiempo", "asc"),
+            limit(10)
+        );
+        const querySnapshot = await getDocs(q);
+        return querySnapshot.docs.map(doc => doc.data());
     } catch (e) {
-      console.error("Error al obtener los puntajes: ", e);
-      return [];
+        console.error("Error al obtener los puntajes: ", e);
+        return [];
     }
-  }
+}
   
 
   // Función para registrar el puntaje
@@ -369,19 +356,13 @@ document.addEventListener('DOMContentLoaded', setupEventListeners);
 
 // Se ejecuta cuando la ventana se ha cargado completamente
 window.onload = async function() {
-    try {
-        await initializeFirebase();
-        setupAudioElements();
-        loadPlayerStats();
-        setupEventListeners();
-        playMainMenuBGM();
-        document.body.classList.add('loaded');
-    } catch (error) {
-        console.error('Initialization failed:', error);
-        // Handle initialization failure
-    }
+    const firebaseInitialized = await initializeFirebase();
+    setupAudioElements();
+    loadPlayerStats();
+    setupEventListeners();
+    playMainMenuBGM();
+    document.body.classList.add('loaded');
 };
-
 
 // Función para cargar estadísticas desde localStorage
 function loadPlayerStats() {
@@ -940,7 +921,7 @@ function cpuMove() {
 
             }, 100); // Pequeña demora antes de que la IA haga su movimiento
 
-        }, 500); // Tiempo de "pensamiento" simulado para mostrar el modal
+        }, 1500); // Tiempo de "pensamiento" simulado para mostrar el modal
     } catch (error) {
         console.error("Error en cpuMove:", error);
     }
@@ -1545,20 +1526,19 @@ function loadSong(index) {
             audio.src = songs[index];
             const songNameElement = document.getElementById('song-name');
             if (songNameElement) {
-                // Remove path and .ogg extension from song name
                 const songName = songs[index].split('/').pop().replace('.ogg', '');
                 songNameElement.textContent = songName;
             }
             audio.load();
             if (bgmEnabled) {
-                audio.play();
+                audio.play().catch(() => {
+                    console.log('Audio playback prevented');
+                });
                 isPlaying = true;
             }
-        } else {
-            console.error("Canción no encontrada en el índice:", index);
         }
     } catch (error) {
-        console.error("Error en loadSong:", error);
+        console.error("Error loading song:", error);
     }
 }
 
@@ -1645,13 +1625,15 @@ function startTimer() {
 
 // Formatea la fecha de firebase
 function formatDate(timestamp) {
+    if (!timestamp) {
+        return 'Fecha no disponible';
+    }
     const fecha = timestamp.toDate();
     const dia = fecha.getDate().toString().padStart(2, '0');
-    const mes = (fecha.getMonth() + 1).toString().padStart(2, '0'); // Los meses empiezan en 0
+    const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
     const año = fecha.getFullYear();
     return `${dia}/${mes}/${año}`;
 }
-
 
 // Formatea el tiempo en segundos a mm:ss
 function formatTime(seconds) {
@@ -1695,15 +1677,15 @@ function calculateAverageTimePerMove() {
 
 // Muestra u oculta un elemento por su ID
 function toggleDisplay(elementId, show) {
-    try {
-        const element = document.getElementById(elementId);
-        if (element) {
-            element.style.display = show ? 'block' : 'none';
+    const element = document.getElementById(elementId);
+    if (element) {
+        if (show) {
+            element.style.display = 'block';
+            element.classList.remove('hidden');
         } else {
-            console.error(`Elemento '${elementId}' no encontrado.`);
+            element.style.display = 'none';
+            element.classList.add('hidden');
         }
-    } catch (error) {
-        console.error("Error en toggleDisplay:", error);
     }
 }
 
@@ -2109,71 +2091,57 @@ function mostrarRanking() {
   
   // Función para cargar los puntajes desde Firebase y mostrarlos en las tablas
   function mostrarRankingPorDificultad(dificultad) {
-    // Actualizar botones
-    document.getElementById('btn-medium').classList.remove('active');
-    document.getElementById('btn-hard').classList.remove('active');
-    document.getElementById(`btn-${dificultad}`).classList.add('active');
+    // Hide all ranking sections first
+    document.querySelectorAll('.ranking-section').forEach(section => {
+        section.classList.add('hidden');
+        section.style.display = 'none';
+    });
 
-    // Mostrar/ocultar secciones
-    document.getElementById('ranking-medium').style.display = dificultad === 'medium' ? 'flex' : 'none';
-    document.getElementById('ranking-hard').style.display = dificultad === 'hard' ? 'flex' : 'none';
+    // Show the selected difficulty section
+    const selectedSection = document.getElementById(`ranking-${dificultad}`);
+    if (selectedSection) {
+        selectedSection.classList.remove('hidden');
+        selectedSection.style.display = 'flex';
+    }
 
-    // Cargar datos
+    // Update button states
+    document.querySelectorAll('[data-ranking]').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector(`[data-ranking="${dificultad}"]`).classList.add('active');
+
+    // Load the ranking data
     cargarRanking(dificultad);
 }
 
 async function cargarRanking(dificultad) {
-    try {
-        console.log("Cargando ranking para dificultad:", dificultad);
-        const rankings = await obtenerPuntajes(dificultad);
-        console.log("Rankings obtenidos:", rankings);
-        
-        const rankingContainer = document.getElementById(`ranking-${dificultad}`);
-        if (!rankingContainer) {
-            console.error(`Container ranking-${dificultad} no encontrado`);
-            return;
-        }
-        
-        rankingContainer.innerHTML = '';
-        
-        if (rankings.length === 0) {
-            rankingContainer.innerHTML = '<div class="ranking-item">No hay puntajes registrados para esta dificultad</div>';
-            return;
-        }
-
-        rankings.forEach((puntaje, index) => {
-            const rankingClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '';
-            
-            const rankingItem = document.createElement('div');
-            rankingItem.className = `ranking-item ${rankingClass}`;
-            rankingItem.innerHTML = `
-                <div class="ranking-row">
-                    <span class="ranking-key">Posición:</span>
-                    <span class="ranking-value">${index + 1}</span>
-                </div>
-                <div class="ranking-row">
-                    <span class="ranking-key">Alias:</span>
-                    <span class="ranking-value">${puntaje.alias}</span>
-                </div>
-                <div class="ranking-row">
-                    <span class="ranking-key">Tiempo:</span>
-                    <span class="ranking-value">${formatTime(puntaje.tiempo)}</span>
-                </div>
-                <div class="ranking-row">
-                    <span class="ranking-key">Movimientos:</span>
-                    <span class="ranking-value">${puntaje.movimientos}</span>
-                </div>
-                <div class="ranking-row">
-                    <span class="ranking-key">Fecha:</span>
-                    <span class="ranking-value">${formatDate(puntaje.fecha)}</span>
-                </div>
-            `;
-            rankingContainer.appendChild(rankingItem);
-        });
-    } catch (error) {
-        console.error("Error en cargarRanking:", error);
+    const rankings = await obtenerPuntajes(dificultad);
+    const rankingContainer = document.getElementById(`ranking-${dificultad}`);
+    
+    if (!rankingContainer) return;
+    
+    rankingContainer.innerHTML = '';
+    
+    if (rankings.length === 0) {
+        rankingContainer.innerHTML = '<div class="ranking-item">No hay puntajes registrados para esta dificultad</div>';
+        return;
     }
+
+    rankings.forEach((puntaje, index) => {
+        const rankingItem = document.createElement('div');
+        rankingItem.className = `ranking-item ${index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : ''}`;
+        
+        rankingItem.innerHTML = `
+            <div class="ranking-position">#${index + 1}</div>
+            <div class="ranking-alias">${puntaje.alias}</div>
+            <div class="ranking-info">
+                <div class="ranking-row">
+                    <span class="ranking-time">${formatTime(puntaje.tiempo)}</span>
+                    <span class="ranking-moves">${puntaje.movimientos} movimientos</span>
+                </div>
+            </div>
+        `;
+        
+        rankingContainer.appendChild(rankingItem);
+    });
 }
-
-
-// ==================== FIN DEL SCRIPT ====================
